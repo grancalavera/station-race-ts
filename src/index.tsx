@@ -114,12 +114,12 @@ type PlayerName = string;
 
 // State Transitions
 
-export const begin = (state: Configuration): Begin => ({
+const begin = (state: Configuration): Begin => ({
   ...state,
   tag: "Begin"
 });
 
-export const setup = (state: Begin): Setup => ({
+const setup = (state: Begin): Setup => ({
   ...state,
   tag: "Setup",
 
@@ -129,7 +129,7 @@ export const setup = (state: Begin): Setup => ({
   }))
 });
 
-export const turn = (state: Setup): Turn => ({
+const turn = (state: Setup): Turn => ({
   ...state,
   tag: "Turn",
 
@@ -148,12 +148,28 @@ export const turnResult = (state: Turn): TurnResult => ({
   tag: "TurnResult"
 });
 
+export const nextTurn = (state: TurnResult): Turn => ({
+  ...state,
+  tag: "Turn",
+
+  currentPlayer: nextPlayer(state as Game)
+});
+
 export const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
   winner: winner(state) as Player
 });
+
+export const playAgain = (state: GameOver): Turn =>
+  turn({
+    ...configuration(state),
+    tag: "Setup"
+  });
+
+export const startAgain = (state: GameOver): Begin =>
+  begin(configuration(state));
 
 // State Identities
 
@@ -204,6 +220,43 @@ export const goLast = withCurrentPlayer((state, player) => ({
   station: state.lastStation
 }));
 
+// State Machine
+
+export const processInput = (state: State, input: Input): State => {
+  switch (input.type) {
+    case "SetupNewGame":
+      return setup(state as Begin);
+    case "RegisterPlayer":
+      return registerPlayer(input.payload, state as Setup);
+    case "Start":
+      return hasEnoughPlayers(state) ? turn(state as Setup) : state;
+    case "GoLeft":
+      return goLeft(state as Turn);
+    case "GoRight":
+      return goRight(state as Turn);
+    case "GoFirst":
+      return goFirst(state as Turn);
+    case "GoLast":
+      return goLast(state as Turn);
+    case "GetOffTheTrain":
+      return hasWinner(state as Game)
+        ? gameOver(state as Turn)
+        : turnResult(state as Turn);
+    case "NextTurn":
+      return nextTurn(state as TurnResult);
+    case "PlayAgain":
+      return playAgain(state as GameOver);
+    case "BeginAgain":
+      return startAgain(state as GameOver);
+    default:
+      return assertNever(input);
+  }
+};
+
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
+
 export const configuration: (state: State) => Configuration = R.pick([
   "firstStation",
   "lastStation",
@@ -216,11 +269,14 @@ export const configuration: (state: State) => Configuration = R.pick([
 const winner = (game: Game): Player | undefined =>
   game.players.find(player => player.station === game.secretStation);
 
-export const hasWinner = (game: Game): boolean => !!winner(game);
+const hasWinner = (game: Game): boolean => !!winner(game);
 
-export const hasEnoughPlayers = (config: Configuration): boolean =>
+const hasEnoughPlayers = (config: Configuration): boolean =>
   R.values(config.registeredPlayers).filter(Boolean).length >=
   config.minPlayers;
+
+const nextPlayer = (game: Game): number =>
+  (game.currentPlayer + 1) % game.players.length;
 
 // Etc
 
