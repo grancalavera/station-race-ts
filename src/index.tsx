@@ -187,16 +187,13 @@ const startAgain = (state: GameOver): Begin => begin(configuration(state));
 const registerPlayer = (
   { i, name }: PlayerRegistration,
   state: Setup
-): Setup => {
-  const invalidName = /^\s*$/.test(name);
-  return {
-    ...state,
-    registeredPlayers: {
-      ...state.registeredPlayers,
-      [i]: invalidName ? "" : name
-    }
-  };
-};
+): Setup => ({
+  ...state,
+  registeredPlayers: {
+    ...state.registeredPlayers,
+    [i]: isInvalidName(name) ? "" : name
+  }
+});
 
 const withCurrentPlayer = (fn: (state: Turn, player: Player) => Player) => (
   state: Turn
@@ -234,6 +231,21 @@ const goLast = withCurrentPlayer((state, player) => ({
 // State Machine
 
 const processInput = (state: State, input: Input): State => {
+  // It is possible to go case-by-case over all valid combinations
+  // of state.tag and input.type, but we would loose the exhaustive
+  // check for transitions, so adding new un-handled transitions would
+  // not produce a compilation error:
+
+  // if (state.tag === "Begin" && input.type === "SetupNewGame") {
+  //   return setup(state)
+  // }
+
+  // if (state.tag === "Setup" && input.type === "RegisterPlayer") {
+  //   return registerPlayer(input.payload, state)
+  // }
+
+  // and so on...
+
   switch (input.type) {
     case "SetupNewGame":
       return setup(state as Begin);
@@ -289,6 +301,7 @@ const hasEnoughPlayers = (config: Configuration): boolean =>
 const nextPlayer = (game: Game): number =>
   (game.currentPlayer + 1) % game.players.length;
 
+const isInvalidName = (name: PlayerName) => /^\s*$/.test(name);
 const simulation = [
   { type: "SetupNewGame" },
   { type: "RegisterPlayer", payload: { i: 0, name: "Player 1" } },
