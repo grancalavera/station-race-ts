@@ -2,22 +2,23 @@ import * as R from "ramda";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "./index.css";
-import registerServiceWorker from "./registerServiceWorker";
 
-export type State = Begin | Setup | Turn | TurnResult | GameOver;
+type State = Begin | Setup | Turn | TurnResult | GameOver;
 
-export type Input =
+type Input =
   | SetupNewGame
   | RegisterPlayer
   | Start
-  | GetOffTheTrain
-  | NextTurn
   | GoLeft
   | GoRight
   | GoFirst
   | GoLast
+  | GetOffTheTrain
+  | NextTurn
   | PlayAgain
   | BeginAgain;
+
+// States
 
 interface Begin extends Configuration {
   tag: "Begin";
@@ -39,6 +40,8 @@ interface GameOver extends Configuration {
   tag: "GameOver";
   winner: Player;
 }
+
+// Inputs
 
 interface SetupNewGame {
   type: "SetupNewGame";
@@ -85,6 +88,8 @@ interface BeginAgain {
   type: "BeginAgain";
 }
 
+// Types
+
 interface Configuration {
   firstStation: number;
   lastStation: number;
@@ -94,7 +99,7 @@ interface Configuration {
   registeredPlayers: { [key: number]: string };
 }
 
-export interface Game {
+interface Game {
   currentPlayer: number;
   players: Player[];
   secretStation: number;
@@ -116,64 +121,70 @@ type PlayerName = string;
 
 const begin = (state: Configuration): Begin => ({
   ...state,
-  tag: "Begin"
+  tag: "Begin",
+
+  registeredPlayers: {}
 });
 
 const setup = (state: Begin): Setup => ({
   ...state,
   tag: "Setup",
 
-  registeredPlayers: [...Array(state.maxPlayers)].reduce((reg, _, i) => ({
-    ...reg,
-    [i]: ""
-  }))
+  registeredPlayers: [...Array(state.maxPlayers)].reduce(
+    (reg, _, i) => ({
+      ...reg,
+      [i]: ""
+    }),
+    {}
+  )
 });
 
-const turn = (state: Setup): Turn => ({
-  ...state,
-  tag: "Turn",
+const turn = (state: Setup): Turn => {
+  return {
+    ...state,
+    tag: "Turn",
 
-  currentPlayer: 0,
-  players: R.values(state.registeredPlayers)
-    .filter(Boolean)
-    .map(name => ({
-      name,
-      station: state.firstStation
-    })),
-  secretStation: state.makeSecretStation(state)
-});
+    currentPlayer: 0,
+    players: R.values(state.registeredPlayers)
+      .filter(Boolean)
+      .map(name => ({
+        name,
+        station: state.firstStation
+      })),
+    secretStation: state.makeSecretStation(state)
+  };
+};
 
-export const turnResult = (state: Turn): TurnResult => ({
+const turnResult = (state: Turn): TurnResult => ({
   ...state,
   tag: "TurnResult"
 });
 
-export const nextTurn = (state: TurnResult): Turn => ({
+const nextTurn = (state: TurnResult): Turn => ({
   ...state,
   tag: "Turn",
 
   currentPlayer: nextPlayer(state as Game)
 });
 
-export const gameOver = (state: Turn): GameOver => ({
+const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
   winner: winner(state) as Player
 });
 
-export const playAgain = (state: GameOver): Turn =>
+const playAgain = (state: GameOver): Turn =>
   turn({
     ...configuration(state),
     tag: "Setup"
   });
 
-export const startAgain = (state: GameOver): Begin =>
-  begin(configuration(state));
+const startAgain = (state: GameOver): Begin => begin(configuration(state));
 
 // State Identities
 
-export const registerPlayer = (
+const registerPlayer = (
   { i, name }: PlayerRegistration,
   state: Setup
 ): Setup => {
@@ -196,33 +207,33 @@ const withCurrentPlayer = (fn: (state: Turn, player: Player) => Player) => (
   )
 });
 
-export const goLeft = withCurrentPlayer(
+const goLeft = withCurrentPlayer(
   (state, player) =>
     player.station > state.firstStation
       ? { ...player, station: player.station - 1 }
       : player
 );
 
-export const goRight = withCurrentPlayer(
+const goRight = withCurrentPlayer(
   (state, player) =>
     player.station < state.lastStation
       ? { ...player, station: player.station + 1 }
       : player
 );
 
-export const goFirst = withCurrentPlayer((state, player) => ({
+const goFirst = withCurrentPlayer((state, player) => ({
   ...player,
   station: state.lastStation
 }));
 
-export const goLast = withCurrentPlayer((state, player) => ({
+const goLast = withCurrentPlayer((state, player) => ({
   ...player,
   station: state.lastStation
 }));
 
 // State Machine
 
-export const processInput = (state: State, input: Input): State => {
+const processInput = (state: State, input: Input): State => {
   switch (input.type) {
     case "SetupNewGame":
       return setup(state as Begin);
@@ -257,7 +268,7 @@ function assertNever(x: never): never {
   throw new Error("Unexpected object: " + x);
 }
 
-export const configuration: (state: State) => Configuration = R.pick([
+const configuration: (state: State) => Configuration = R.pick([
   "firstStation",
   "lastStation",
   "minPlayers",
@@ -278,12 +289,37 @@ const hasEnoughPlayers = (config: Configuration): boolean =>
 const nextPlayer = (game: Game): number =>
   (game.currentPlayer + 1) % game.players.length;
 
+const simulation = [
+  { type: "SetupNewGame" },
+  { type: "RegisterPlayer", payload: { i: 0, name: "Player 1" } },
+  { type: "RegisterPlayer", payload: { i: 1, name: "Player 2" } },
+  { type: "Start" },
+  { type: "GoRight" },
+  { type: "GetOffTheTrain" },
+  { type: "NextTurn" },
+  { type: "GoRight" },
+  { type: "GoRight" },
+  { type: "GetOffTheTrain" }
+].reduce(
+  (history, input: Input) => {
+    const [state] = history;
+    return [processInput(state, input), ...history];
+  },
+  [
+    begin({
+      firstStation: 1,
+      lastStation: 4,
+      makeSecretStation: () => 3,
+      maxPlayers: 4,
+      minPlayers: 2,
+      registeredPlayers: {}
+    })
+  ]
+);
+
 // Etc
 
-ReactDOM.render(<div>Nothing</div>, document.getElementById(
-  "root"
-) as HTMLElement);
-
-// look at this at some point
-// https://github.com/facebook/create-react-app/blob/master/packages/react-scripts/template/README.md#making-a-progressive-web-app
-registerServiceWorker();
+ReactDOM.render(
+  <pre>{JSON.stringify(simulation, null, 2)}</pre>,
+  document.getElementById("root") as HTMLElement
+);
