@@ -18,6 +18,9 @@ type Input =
   | PlayAgain
   | BeginAgain;
 
+type StateTag = State["tag"];
+type Transition = (state: State, input: Input) => State;
+
 // States
 
 interface Begin extends Configuration {
@@ -139,6 +142,9 @@ const setup = (state: Begin): Setup => ({
   )
 });
 
+const start = (state: Setup): Setup | Turn =>
+  hasEnoughPlayers(state) ? turn(state) : state;
+
 const turn = (state: Setup): Turn => {
   return {
     ...state,
@@ -155,6 +161,16 @@ const turn = (state: Setup): Turn => {
   };
 };
 
+const getOffTheTrain = (state: Turn): GameOver | TurnResult =>
+  hasWinner(state) ? gameOver(state) : turnResult(state);
+
+const gameOver = (state: Turn): GameOver => ({
+  ...configuration(state),
+  tag: "GameOver",
+
+  winner: winner(state) as Player
+});
+
 const turnResult = (state: Turn): TurnResult => ({
   ...state,
   tag: "TurnResult"
@@ -165,13 +181,6 @@ const nextTurn = (state: TurnResult): Turn => ({
   tag: "Turn",
 
   currentPlayer: nextPlayer(state as Game)
-});
-
-const gameOver = (state: Turn): GameOver => ({
-  ...configuration(state),
-  tag: "GameOver",
-
-  winner: winner(state) as Player
 });
 
 const playAgain = (state: GameOver): Turn =>
@@ -228,34 +237,46 @@ const goLast = withCurrentPlayer((state, player) => ({
   station: state.lastStation
 }));
 
+// State guards
+
+const whenStateIs = (tag: StateTag) => (
+  fn: Transition,
+  state: State,
+  input: Input
+): State => (state.tag === tag ? fn(state, input) : state);
+
+const whenBegin = whenStateIs("Begin");
+const whenSetup = whenStateIs("Setup");
+const whenTurn = whenStateIs("Turn");
+const whenTurnResult = whenStateIs("TurnResult");
+const whenGameOver = whenStateIs("GameOver");
+
 // State machine
 
 const processInput = (state: State, input: Input): State => {
   switch (input.type) {
     case "SetupNewGame":
-      return setup(state as Begin);
+      return whenBegin(setup, state, input);
     case "RegisterPlayer":
-      return registerPlayer(state as Setup, input);
+      return whenSetup(registerPlayer, state, input);
     case "Start":
-      return hasEnoughPlayers(state) ? turn(state as Setup) : state;
+      return whenSetup(start, state, input);
     case "GoLeft":
-      return goLeft(state as Turn);
+      return whenTurn(goLeft, state, input);
     case "GoRight":
-      return goRight(state as Turn);
+      return whenTurn(goRight, state, input);
     case "GoFirst":
-      return goFirst(state as Turn);
+      return whenTurn(goFirst, state, input);
     case "GoLast":
-      return goLast(state as Turn);
+      return whenTurn(goLast, state, input);
     case "GetOffTheTrain":
-      return hasWinner(state as Game)
-        ? gameOver(state as Turn)
-        : turnResult(state as Turn);
+      return whenTurn(getOffTheTrain, state, input);
     case "NextTurn":
-      return nextTurn(state as TurnResult);
+      return whenTurnResult(nextTurn, state, input);
     case "PlayAgain":
-      return playAgain(state as GameOver);
+      return whenGameOver(playAgain, state, input);
     case "BeginAgain":
-      return startAgain(state as GameOver);
+      return whenGameOver(startAgain, state, input);
     default:
       return assertNever(input);
   }
