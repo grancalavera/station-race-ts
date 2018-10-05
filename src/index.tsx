@@ -184,16 +184,16 @@ const startAgain = (state: GameOver): Begin => begin(configuration(state));
 
 // Transition identities
 
-const registerPlayer = (
-  { i, name }: PlayerRegistration,
-  state: Setup
-): Setup => ({
-  ...state,
-  registeredPlayers: {
-    ...state.registeredPlayers,
-    [i]: isInvalidName(name) ? "" : name
-  }
-});
+const registerPlayer = (state: Setup, input: RegisterPlayer): Setup => {
+  const { i, name } = input.payload;
+  return {
+    ...state,
+    registeredPlayers: {
+      ...state.registeredPlayers,
+      [i]: isInvalidName(name) ? "" : name
+    }
+  };
+};
 
 const withCurrentPlayer = (fn: (state: Turn, player: Player) => Player) => (
   state: Turn
@@ -235,7 +235,7 @@ const processInput = (state: State, input: Input): State => {
     case "SetupNewGame":
       return setup(state as Begin);
     case "RegisterPlayer":
-      return registerPlayer(input.payload, state as Setup);
+      return registerPlayer(state as Setup, input);
     case "Start":
       return hasEnoughPlayers(state) ? turn(state as Setup) : state;
     case "GoLeft":
