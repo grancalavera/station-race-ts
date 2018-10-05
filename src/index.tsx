@@ -117,7 +117,7 @@ interface PlayerRegistration {
 
 type PlayerName = string;
 
-// State Transitions
+// Transitions
 
 const begin = (state: Configuration): Begin => ({
   ...state,
@@ -182,7 +182,7 @@ const playAgain = (state: GameOver): Turn =>
 
 const startAgain = (state: GameOver): Begin => begin(configuration(state));
 
-// State Identities
+// Transition identities
 
 const registerPlayer = (
   { i, name }: PlayerRegistration,
@@ -228,24 +228,9 @@ const goLast = withCurrentPlayer((state, player) => ({
   station: state.lastStation
 }));
 
-// State Machine
+// State machine
 
 const processInput = (state: State, input: Input): State => {
-  // It is possible to go case-by-case over all valid combinations
-  // of state.tag and input.type, but we would loose the exhaustive
-  // check for transitions, so adding new un-handled transitions would
-  // not produce a compilation error:
-
-  // if (state.tag === "Begin" && input.type === "SetupNewGame") {
-  //   return setup(state)
-  // }
-
-  // if (state.tag === "Setup" && input.type === "RegisterPlayer") {
-  //   return registerPlayer(input.payload, state)
-  // }
-
-  // and so on...
-
   switch (input.type) {
     case "SetupNewGame":
       return setup(state as Begin);
