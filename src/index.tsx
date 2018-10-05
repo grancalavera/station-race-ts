@@ -287,37 +287,44 @@ const nextPlayer = (game: Game): number =>
   (game.currentPlayer + 1) % game.players.length;
 
 const isInvalidName = (name: PlayerName) => /^\s*$/.test(name);
-const simulation = [
-  { type: "SetupNewGame" },
-  { type: "RegisterPlayer", payload: { i: 0, name: "Player 1" } },
-  { type: "RegisterPlayer", payload: { i: 1, name: "Player 2" } },
-  { type: "Start" },
-  { type: "GoRight" },
-  { type: "GetOffTheTrain" },
-  { type: "NextTurn" },
-  { type: "GoRight" },
-  { type: "GoRight" },
-  { type: "GetOffTheTrain" }
-].reduce(
-  (history, input: Input) => {
-    const [state] = history;
-    return [processInput(state, input), ...history];
-  },
-  [
-    begin({
-      firstStation: 1,
-      lastStation: 4,
-      makeSecretStation: () => 3,
-      maxPlayers: 4,
-      minPlayers: 2,
-      registeredPlayers: {}
-    })
-  ]
-);
 
-// Etc
+// Simulation
 
 ReactDOM.render(
-  <pre>{JSON.stringify(simulation, null, 2)}</pre>,
+  <pre>
+    {JSON.stringify(
+      [
+        { type: "SetupNewGame" },
+        { type: "RegisterPlayer", payload: { i: 0, name: "Player 1" } },
+        { type: "RegisterPlayer", payload: { i: 1, name: "Player 2" } },
+        { type: "Start" },
+        { type: "GoRight" },
+        { type: "GetOffTheTrain" },
+        { type: "NextTurn" },
+        { type: "GoRight" },
+        { type: "GoRight" },
+        { type: "GetOffTheTrain" }
+      ]
+        .reduce(
+          (history, input: Input) => {
+            const [state] = history;
+            return [processInput(state, input), ...history];
+          },
+          [
+            begin({
+              firstStation: 1,
+              lastStation: 4,
+              makeSecretStation: () => 3,
+              maxPlayers: 4,
+              minPlayers: 2,
+              registeredPlayers: {}
+            })
+          ]
+        )
+        .reverse(),
+      null,
+      2
+    )}
+  </pre>,
   document.getElementById("root") as HTMLElement
 );
