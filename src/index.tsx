@@ -19,7 +19,7 @@ type Input =
   | BeginAgain;
 
 type StateTag = State["tag"];
-type Transition = (state: State, input: Input) => State;
+type Transition = (state: State, input?: Input) => State;
 
 // States
 
@@ -242,7 +242,7 @@ const goLast = withCurrentPlayer((state, player) => ({
 const whenStateIs = (tag: StateTag) => (
   fn: Transition,
   state: State,
-  input: Input
+  input?: Input
 ): State => (state.tag === tag ? fn(state, input) : state);
 
 const whenBegin = whenStateIs("Begin");
@@ -256,27 +256,27 @@ const whenGameOver = whenStateIs("GameOver");
 const processInput = (state: State, input: Input): State => {
   switch (input.type) {
     case "SetupNewGame":
-      return whenBegin(setup, state, input);
+      return whenBegin(setup, state);
     case "RegisterPlayer":
       return whenSetup(registerPlayer, state, input);
     case "Start":
-      return whenSetup(start, state, input);
+      return whenSetup(start, state);
     case "GoLeft":
-      return whenTurn(goLeft, state, input);
+      return whenTurn(goLeft, state);
     case "GoRight":
-      return whenTurn(goRight, state, input);
+      return whenTurn(goRight, state);
     case "GoFirst":
-      return whenTurn(goFirst, state, input);
+      return whenTurn(goFirst, state);
     case "GoLast":
-      return whenTurn(goLast, state, input);
+      return whenTurn(goLast, state);
     case "GetOffTheTrain":
-      return whenTurn(getOffTheTrain, state, input);
+      return whenTurn(getOffTheTrain, state);
     case "NextTurn":
-      return whenTurnResult(nextTurn, state, input);
+      return whenTurnResult(nextTurn, state);
     case "PlayAgain":
-      return whenGameOver(playAgain, state, input);
+      return whenGameOver(playAgain, state);
     case "BeginAgain":
-      return whenGameOver(startAgain, state, input);
+      return whenGameOver(startAgain, state);
     default:
       return assertNever(input);
   }
