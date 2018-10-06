@@ -278,13 +278,9 @@ const processInput = (state: State, input: Input): State => {
     case "BeginAgain":
       return whenGameOver(startAgain, state);
     default:
-      return assertNever(input);
+      return input;
   }
 };
-
-function assertNever(x: never): never {
-  throw new Error("Unexpected object: " + x);
-}
 
 const configuration: (state: State) => Configuration = R.pick([
   "firstStation",
