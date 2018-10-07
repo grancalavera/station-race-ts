@@ -133,7 +133,7 @@ const setup = (state: Begin): Setup => ({
   ...state,
   tag: "Setup",
 
-  registeredPlayers: [...Array(state.maxPlayers)].reduce(
+  registeredPlayers: R.range(0, state.maxPlayers).reduce(
     (reg, _, i) => ({
       ...reg,
       [i]: ""
