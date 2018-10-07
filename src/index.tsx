@@ -381,27 +381,27 @@ class Keyboard extends React.Component<KeyboardProps> {
     switch (shiftKey ? `Shift${key}` : key) {
       case "ArrowLeft":
         e.preventDefault();
-        onLeft!();
+        onLeft();
         break;
       case "ArrowRight":
         e.preventDefault();
-        onRight!();
+        onRight();
         break;
       case "ShiftArrowLeft":
         e.preventDefault();
-        onShiftLeft!();
+        onShiftLeft();
         break;
       case "ShiftArrowRight":
         e.preventDefault();
-        onShiftRight!();
+        onShiftRight();
         break;
       case "Enter":
         e.preventDefault();
-        onEnter!();
+        onEnter();
         break;
       case "ShiftEnter":
         e.preventDefault();
-        onShiftEnter!();
+        onShiftEnter();
         break;
       default:
     }
