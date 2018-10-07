@@ -170,7 +170,7 @@ const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
-  winner: winner(state) as Player
+  winner: winner(state)!
 });
 
 const turnResult = (state: Turn): TurnResult => ({
