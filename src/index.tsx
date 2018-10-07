@@ -42,6 +42,7 @@ interface TurnResult extends Configuration, Game {
 interface GameOver extends Configuration {
   tag: "GameOver";
   winner: Player;
+  secretStation: number;
 }
 
 // Inputs
@@ -168,6 +169,7 @@ const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
+  secretStation: state.secretStation,
   winner: winner(state) as Player
 });
 
@@ -432,6 +434,8 @@ class StationRace extends React.Component<Configuration, State> {
     this.goFirst = this.goFirst.bind(this);
     this.goLast = this.goLast.bind(this);
     this.nextTurn = this.nextTurn.bind(this);
+    this.playAgain = this.playAgain.bind(this);
+    this.beginAgain = this.beginAgain.bind(this);
   }
   public render() {
     const state = this.state;
@@ -628,7 +632,36 @@ class StationRace extends React.Component<Configuration, State> {
             </ul>
           </React.Fragment>
         )}
-        <pre>{JSON.stringify(state, null, 2)}</pre>
+
+        {stateIsGameOver(state) && (
+          <React.Fragment>
+            <Keyboard onEnter={this.playAgain} onShiftEnter={this.beginAgain} />
+            <h2>Game Over!</h2>
+            <p>{state.winner.name} won the game.</p>
+            <p>The secret station was station {state.secretStation}.</p>
+            <div className="control-bar">
+              <button
+                className="control control-large"
+                onClick={this.playAgain}
+                tabIndex={-1}
+              >
+                PLAY AGAIN
+              </button>
+              <button
+                className="control control-large"
+                onClick={this.beginAgain}
+                tabIndex={-1}
+              >
+                NEW GAME
+              </button>
+            </div>
+            <ul className="small-print">
+              <li>Enter: play playAgain.</li>
+              <li>Shift+Enter: play a new game.</li>
+            </ul>
+          </React.Fragment>
+        )}
+        {/* <pre>{JSON.stringify(state, null, 2)}</pre> */}
       </React.Fragment>
     );
   }
@@ -684,13 +717,13 @@ class StationRace extends React.Component<Configuration, State> {
     this.sendInput({ type: "NextTurn" });
   }
 
-  // private beginAgain(): void {
-  //   this.sendInput({ type: "BeginAgain" });
-  // }
+  private playAgain(): void {
+    this.sendInput({ type: "PlayAgain" });
+  }
 
-  // private playAgain(): void {
-  //   this.sendInput({ type: "PlayAgain" });
-  // }
+  private beginAgain(): void {
+    this.sendInput({ type: "BeginAgain" });
+  }
 }
 
 // Simulation
