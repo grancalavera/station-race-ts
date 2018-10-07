@@ -437,6 +437,7 @@ class StationRace extends React.Component<Configuration, State> {
     this.playAgain = this.playAgain.bind(this);
     this.beginAgain = this.beginAgain.bind(this);
   }
+
   public render() {
     const state = this.state;
     return (
@@ -688,8 +689,10 @@ class StationRace extends React.Component<Configuration, State> {
   private registerPlayer(i: number) {
     return (e: React.ChangeEvent<HTMLInputElement>): void => {
       e.preventDefault();
-      const name = e.target.value;
-      this.sendInput({ type: "RegisterPlayer", payload: { i, name } });
+      this.sendInput({
+        payload: { i, name: e.target.value },
+        type: "RegisterPlayer"
+      });
     };
   }
 
