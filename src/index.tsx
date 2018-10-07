@@ -42,7 +42,6 @@ interface TurnResult extends Configuration, Game {
 interface GameOver extends Configuration {
   tag: "GameOver";
   winner: Player;
-  secretStation: number;
 }
 
 // Inputs
@@ -169,7 +168,6 @@ const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
-  secretStation: state.secretStation,
   winner: winner(state) as Player
 });
 
@@ -639,7 +637,7 @@ class StationRace extends React.Component<Configuration, State> {
             <Keyboard onEnter={this.playAgain} onShiftEnter={this.beginAgain} />
             <h2>Game Over!</h2>
             <p>{state.winner.name} won the game.</p>
-            <p>The secret station was station {state.secretStation}.</p>
+            <p>The secret station was station {state.winner.station}.</p>
             <div className="control-bar">
               <button
                 className="control control-large"
@@ -662,7 +660,7 @@ class StationRace extends React.Component<Configuration, State> {
             </ul>
           </React.Fragment>
         )}
-        {/* <pre>{JSON.stringify(state, null, 2)}</pre> */}
+        <pre>{JSON.stringify(state, null, 2)}</pre>
       </React.Fragment>
     );
   }
