@@ -239,44 +239,56 @@ const goLast = withCurrentPlayer((state, player) => ({
 
 // State guards
 
-const whenStateIs = (tag: StateTag) => (
-  fn: Transition,
+const stateIs = <T extends State>(tag: StateTag) => (
+  state: State
+): state is T => {
+  return state.tag === tag;
+};
+
+const stateIsBegin = stateIs<Begin>("Begin");
+const stateIsSetup = stateIs<Setup>("Setup");
+const stateIsTurn = stateIs<Turn>("Turn");
+const stateIsTurnResult = stateIs<TurnResult>("TurnResult");
+const stateIsGameOver = stateIs<GameOver>("GameOver");
+
+const stateTransition = (guardFn: ((state: State) => state is State)) => (
+  transFn: Transition,
   state: State,
   input?: Input
-): State => (state.tag === tag ? fn(state, input) : state);
+): State => (guardFn(state) ? transFn(state, input) : state);
 
-const whenBegin = whenStateIs("Begin");
-const whenSetup = whenStateIs("Setup");
-const whenTurn = whenStateIs("Turn");
-const whenTurnResult = whenStateIs("TurnResult");
-const whenGameOver = whenStateIs("GameOver");
+const beginTransition = stateTransition(stateIsBegin);
+const setupTransition = stateTransition(stateIsSetup);
+const turnTransition = stateTransition(stateIsTurn);
+const turnResultTransition = stateTransition(stateIsTurnResult);
+const gameOverTransition = stateTransition(stateIsGameOver);
 
 // State machine
 
 const processInput = (state: State, input: Input): State => {
   switch (input.type) {
     case "SetupNewGame":
-      return whenBegin(setup, state);
+      return beginTransition(setup, state);
     case "RegisterPlayer":
-      return whenSetup(registerPlayer, state, input);
+      return setupTransition(registerPlayer, state, input);
     case "Start":
-      return whenSetup(start, state);
+      return setupTransition(start, state);
     case "GoLeft":
-      return whenTurn(goLeft, state);
+      return turnTransition(goLeft, state);
     case "GoRight":
-      return whenTurn(goRight, state);
+      return turnTransition(goRight, state);
     case "GoFirst":
-      return whenTurn(goFirst, state);
+      return turnTransition(goFirst, state);
     case "GoLast":
-      return whenTurn(goLast, state);
+      return turnTransition(goLast, state);
     case "GetOffTheTrain":
-      return whenTurn(getOffTheTrain, state);
+      return turnTransition(getOffTheTrain, state);
     case "NextTurn":
-      return whenTurnResult(nextTurn, state);
+      return turnResultTransition(nextTurn, state);
     case "PlayAgain":
-      return whenGameOver(playAgain, state);
+      return gameOverTransition(playAgain, state);
     case "BeginAgain":
-      return whenGameOver(startAgain, state);
+      return gameOverTransition(startAgain, state);
     default:
       return input;
   }
