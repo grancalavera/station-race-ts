@@ -245,6 +245,10 @@ const stateIs = <T extends State>(tag: StateTag) => (
   return state.tag === tag;
 };
 
+const stateIsNot = <T extends State>(tag: StateTag) => (
+  state: State
+): state is Exclude<State, T> => state.tag !== tag;
+
 const stateTransition = <T extends State>(
   guardFn: ((state: State) => state is T)
 ) => (transFn: Transition, state: State, input?: Input): State =>
@@ -255,6 +259,8 @@ const stateIsSetup = stateIs<Setup>("Setup");
 const stateIsTurn = stateIs<Turn>("Turn");
 const stateIsTurnResult = stateIs<TurnResult>("TurnResult");
 const stateIsGameOver = stateIs<GameOver>("GameOver");
+
+const stateIsNotGameOver = stateIsNot<GameOver>("GameOver");
 
 const beginTransition = stateTransition<Begin>(stateIsBegin);
 const setupTransition = stateTransition<Setup>(stateIsSetup);
@@ -411,13 +417,13 @@ class StationRace extends React.Component<Configuration, State> {
       <React.Fragment>
         <h1>Station Race!</h1>
 
-        {this.whenStateIsNot("GameOver") && (
+        {stateIsNotGameOver(state) && (
           <blockquote>
             Get off the train at the secret station to win the game.
           </blockquote>
         )}
 
-        {state.tag === "Begin" && (
+        {stateIsBegin(state) && (
           <React.Fragment>
             <Keyboard onEnter={this.setupNewGame} />
             <ul>
