@@ -369,39 +369,30 @@ class Keyboard extends React.Component<KeyboardProps> {
 
   public handleKeydown(e: KeyboardEvent): void {
     const { shiftKey, key } = e;
-    const {
-      onEnter,
-      onLeft,
-      onRight,
-      onShiftEnter,
-      onShiftLeft,
-      onShiftRight
-    } = this.props;
-
     switch (shiftKey ? `Shift${key}` : key) {
       case "ArrowLeft":
         e.preventDefault();
-        onLeft();
+        this.props.onLeft();
         break;
       case "ArrowRight":
         e.preventDefault();
-        onRight();
+        this.props.onRight();
         break;
       case "ShiftArrowLeft":
         e.preventDefault();
-        onShiftLeft();
+        this.props.onShiftLeft();
         break;
       case "ShiftArrowRight":
         e.preventDefault();
-        onShiftRight();
+        this.props.onShiftRight();
         break;
       case "Enter":
         e.preventDefault();
-        onEnter();
+        this.props.onEnter();
         break;
       case "ShiftEnter":
         e.preventDefault();
-        onShiftEnter();
+        this.props.onShiftEnter();
         break;
       default:
     }
