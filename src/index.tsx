@@ -239,10 +239,10 @@ const goLast = withCurrentPlayer((state, player) => ({
 
 // State guards
 
-const stateIs = <T extends State>(tag: StateTag) => (
+const stateIs = <T extends State>(tags: StateTag[]) => (
   state: State
 ): state is T => {
-  return state.tag === tag;
+  return R.any(tag => state.tag === tag, tags);
 };
 
 const stateIsNot = <T extends State>(tag: StateTag) => (
@@ -254,11 +254,12 @@ const stateTransition = <T extends State>(
 ) => (transFn: Transition, state: State, input?: Input): State =>
   guardFn(state) ? transFn(state, input) : state;
 
-const stateIsBegin = stateIs<Begin>("Begin");
-const stateIsSetup = stateIs<Setup>("Setup");
-const stateIsTurn = stateIs<Turn>("Turn");
-const stateIsTurnResult = stateIs<TurnResult>("TurnResult");
-const stateIsGameOver = stateIs<GameOver>("GameOver");
+const stateIsBegin = stateIs<Begin>(["Begin"]);
+const stateIsSetup = stateIs<Setup>(["Setup"]);
+const stateIsTurn = stateIs<Turn>(["Turn"]);
+const stateIsAnyTurn = stateIs<Turn | TurnResult>(["Turn", "TurnResult"]);
+const stateIsTurnResult = stateIs<TurnResult>(["TurnResult"]);
+const stateIsGameOver = stateIs<GameOver>(["GameOver"]);
 
 const stateIsNotGameOver = stateIsNot<GameOver>("GameOver");
 
@@ -413,6 +414,12 @@ class StationRace extends React.Component<Configuration, State> {
     this.setupNewGame = this.setupNewGame.bind(this);
     this.start = this.start.bind(this);
     this.registerPlayer = this.registerPlayer.bind(this);
+    this.getOffTheTrain = this.getOffTheTrain.bind(this);
+    this.goLeft = this.goLeft.bind(this);
+    this.goRight = this.goRight.bind(this);
+    this.goFirst = this.goFirst.bind(this);
+    this.goLast = this.goLast.bind(this);
+    this.nextTurn = this.nextTurn.bind(this);
   }
   public render() {
     const state = this.state;
@@ -490,6 +497,22 @@ class StationRace extends React.Component<Configuration, State> {
             )}
           </React.Fragment>
         )}
+
+        {stateIsAnyTurn(state) && (
+          <React.Fragment>
+            {stateIsTurn(state) ? (
+              <Keyboard
+                onEnter={this.getOffTheTrain}
+                onLeft={this.goLeft}
+                onRight={this.goRight}
+                onShiftLeft={this.goFirst}
+                onShiftRight={this.goLast}
+              />
+            ) : (
+              <Keyboard onEnter={this.nextTurn} />
+            )}
+          </React.Fragment>
+        )}
         <pre>{JSON.stringify(state, null, 2)}</pre>
       </React.Fragment>
     );
@@ -522,36 +545,36 @@ class StationRace extends React.Component<Configuration, State> {
     };
   }
 
+  private getOffTheTrain(): void {
+    this.sendInput({ type: "GetOffTheTrain" });
+  }
+
+  private goLeft(): void {
+    this.sendInput({ type: "GoLeft" });
+  }
+
+  private goRight(): void {
+    this.sendInput({ type: "GoRight" });
+  }
+
+  private goFirst(): void {
+    this.sendInput({ type: "GoFirst" });
+  }
+
+  private goLast(): void {
+    this.sendInput({ type: "GoLast" });
+  }
+
+  private nextTurn(): void {
+    this.sendInput({ type: "NextTurn" });
+  }
+
   // private beginAgain(): void {
   //   this.sendInput({ type: "BeginAgain" });
   // }
 
   // private playAgain(): void {
   //   this.sendInput({ type: "PlayAgain" });
-  // }
-
-  // private getOffTheTrain(): void {
-  //   this.sendInput({ type: "GetOffTheTrain" });
-  // }
-
-  // private nextTurn(): void {
-  //   this.sendInput({ type: "NextTurn" });
-  // }
-
-  // private goLeft(): void {
-  //   this.sendInput({ type: "GoLeft" });
-  // }
-
-  // private goRight(): void {
-  //   this.sendInput({ type: "GoRight" });
-  // }
-
-  // private goFirst(): void {
-  //   this.sendInput({ type: "GoFirst" });
-  // }
-
-  // private goLast(): void {
-  //   this.sendInput({ type: "GoLast" });
   // }
 
   // private isCurrentPlayer(game: Game, player: number): boolean {
