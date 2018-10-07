@@ -245,23 +245,22 @@ const stateIs = <T extends State>(tag: StateTag) => (
   return state.tag === tag;
 };
 
+const stateTransition = <T extends State>(
+  guardFn: ((state: State) => state is T)
+) => (transFn: Transition, state: State, input?: Input): State =>
+  guardFn(state) ? transFn(state, input) : state;
+
 const stateIsBegin = stateIs<Begin>("Begin");
 const stateIsSetup = stateIs<Setup>("Setup");
 const stateIsTurn = stateIs<Turn>("Turn");
 const stateIsTurnResult = stateIs<TurnResult>("TurnResult");
 const stateIsGameOver = stateIs<GameOver>("GameOver");
 
-const stateTransition = (guardFn: ((state: State) => state is State)) => (
-  transFn: Transition,
-  state: State,
-  input?: Input
-): State => (guardFn(state) ? transFn(state, input) : state);
-
-const beginTransition = stateTransition(stateIsBegin);
-const setupTransition = stateTransition(stateIsSetup);
-const turnTransition = stateTransition(stateIsTurn);
-const turnResultTransition = stateTransition(stateIsTurnResult);
-const gameOverTransition = stateTransition(stateIsGameOver);
+const beginTransition = stateTransition<Begin>(stateIsBegin);
+const setupTransition = stateTransition<Setup>(stateIsSetup);
+const turnTransition = stateTransition<Turn>(stateIsTurn);
+const turnResultTransition = stateTransition<TurnResult>(stateIsTurnResult);
+const gameOverTransition = stateTransition<GameOver>(stateIsGameOver);
 
 // State machine
 
