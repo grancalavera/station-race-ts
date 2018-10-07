@@ -9,13 +9,13 @@ type State = Begin | Setup | Turn | TurnResult | GameOver;
 
 type Input =
   | SetupNewGame
-  | RegisterPlayer
   | Start
+  | RegisterPlayer
+  | GetOffTheTrain
   | GoLeft
   | GoRight
   | GoFirst
   | GoLast
-  | GetOffTheTrain
   | NextTurn
   | PlayAgain
   | BeginAgain;
@@ -424,22 +424,31 @@ class StationRace extends React.Component<Configuration, State> {
   constructor(props: Configuration) {
     super(props);
     this.state = begin(props);
-
-    this.setupNewGame = this.setupNewGame.bind(this);
-    this.start = this.start.bind(this);
-    this.registerPlayer = this.registerPlayer.bind(this);
-    this.getOffTheTrain = this.getOffTheTrain.bind(this);
-    this.goLeft = this.goLeft.bind(this);
-    this.goRight = this.goRight.bind(this);
-    this.goFirst = this.goFirst.bind(this);
-    this.goLast = this.goLast.bind(this);
-    this.nextTurn = this.nextTurn.bind(this);
-    this.playAgain = this.playAgain.bind(this);
-    this.beginAgain = this.beginAgain.bind(this);
   }
 
   public render() {
     const state = this.state;
+
+    const sendSetupNewGame = () => this.sendInput({ type: "SetupNewGame" });
+    const sendStart = () => this.sendInput({ type: "Start" });
+    const sendGetOffTheTrain = () => this.sendInput({ type: "GetOffTheTrain" });
+    const sendGoLeft = () => this.sendInput({ type: "GoLeft" });
+    const sendGoRight = () => this.sendInput({ type: "GoRight" });
+    const sendGoFirst = () => this.sendInput({ type: "GoFirst" });
+    const sendGoLast = () => this.sendInput({ type: "GoLast" });
+    const sendNextTurn = () => this.sendInput({ type: "NextTurn" });
+    const sendPlayAgain = () => this.sendInput({ type: "PlayAgain" });
+    const sendBeginAgain = () => this.sendInput({ type: "BeginAgain" });
+    const sendRegisterPlayer = (i: number) => (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      e.preventDefault();
+      this.sendInput({
+        payload: { i, name: e.target.value },
+        type: "RegisterPlayer"
+      });
+    };
+
     return (
       <React.Fragment>
         <h1>Station Race!</h1>
@@ -452,7 +461,7 @@ class StationRace extends React.Component<Configuration, State> {
 
         {stateIsBegin(state) && (
           <React.Fragment>
-            <Keyboard onEnter={this.setupNewGame} />
+            <Keyboard onEnter={sendSetupNewGame} />
             <ul>
               <li>
                 You're in a train running from station {state.firstStation} to
@@ -469,7 +478,7 @@ class StationRace extends React.Component<Configuration, State> {
             <div className="control-bar">
               <button
                 className="control control-large"
-                onClick={this.setupNewGame}
+                onClick={sendSetupNewGame}
                 tabIndex={-1}
               >
                 BEGIN
@@ -483,7 +492,7 @@ class StationRace extends React.Component<Configuration, State> {
 
         {stateIsSetup(state) && (
           <React.Fragment>
-            <Keyboard onEnter={this.start} />
+            <Keyboard onEnter={sendStart} />
             <ul>
               <li>
                 Add at least {state.minPlayers} players to start the game.
@@ -496,7 +505,7 @@ class StationRace extends React.Component<Configuration, State> {
                   value={
                     state.registeredPlayers[i] ? state.registeredPlayers[i] : ""
                   }
-                  onChange={this.registerPlayer(i)}
+                  onChange={sendRegisterPlayer(i)}
                 />{" "}
               </div>
             ))}
@@ -505,7 +514,7 @@ class StationRace extends React.Component<Configuration, State> {
               <div className="control-bar">
                 <button
                   className="control control-large"
-                  onClick={this.start}
+                  onClick={sendStart}
                   tabIndex={-1}
                 >
                   START
@@ -522,14 +531,14 @@ class StationRace extends React.Component<Configuration, State> {
           <React.Fragment>
             {stateIsTurn(state) ? (
               <Keyboard
-                onEnter={this.getOffTheTrain}
-                onLeft={this.goLeft}
-                onRight={this.goRight}
-                onShiftLeft={this.goFirst}
-                onShiftRight={this.goLast}
+                onEnter={sendGetOffTheTrain}
+                onLeft={sendGoLeft}
+                onRight={sendGoRight}
+                onShiftLeft={sendGoFirst}
+                onShiftRight={sendGoLast}
               />
             ) : (
-              <Keyboard onEnter={this.nextTurn} />
+              <Keyboard onEnter={sendNextTurn} />
             )}
 
             {state.players.map(({ name, station }, i) => (
@@ -563,35 +572,35 @@ class StationRace extends React.Component<Configuration, State> {
                   isCurrentPlayer(state, i) && (
                     <div className="control-bar">
                       <button
-                        onClick={this.goFirst}
+                        onClick={sendGoFirst}
                         className="control"
                         tabIndex={-1}
                       >
                         {"<<"}
                       </button>
                       <button
-                        onClick={this.goLeft}
+                        onClick={sendGoLeft}
                         className="control"
                         tabIndex={-1}
                       >
                         {"<"}
                       </button>
                       <button
-                        onClick={this.goRight}
+                        onClick={sendGoRight}
                         className="control"
                         tabIndex={-1}
                       >
                         {">"}
                       </button>
                       <button
-                        onClick={this.goLast}
+                        onClick={sendGoLast}
                         className="control"
                         tabIndex={-1}
                       >
                         {">>"}
                       </button>
                       <button
-                        onClick={this.getOffTheTrain}
+                        onClick={sendGetOffTheTrain}
                         className="control control-large"
                         tabIndex={-1}
                       >
@@ -610,7 +619,7 @@ class StationRace extends React.Component<Configuration, State> {
                       <div className="control-bar">
                         <button
                           className="control control-large"
-                          onClick={this.nextTurn}
+                          onClick={sendNextTurn}
                         >
                           NEXT PLAYER
                         </button>
@@ -639,21 +648,21 @@ class StationRace extends React.Component<Configuration, State> {
 
         {stateIsGameOver(state) && (
           <React.Fragment>
-            <Keyboard onEnter={this.playAgain} onShiftEnter={this.beginAgain} />
+            <Keyboard onEnter={sendPlayAgain} onShiftEnter={sendBeginAgain} />
             <h2>Game Over!</h2>
             <p>{state.winner.name} won the game.</p>
             <p>The secret station was station {state.winner.station}.</p>
             <div className="control-bar">
               <button
                 className="control control-large"
-                onClick={this.playAgain}
+                onClick={sendPlayAgain}
                 tabIndex={-1}
               >
                 PLAY AGAIN
               </button>
               <button
                 className="control control-large"
-                onClick={this.beginAgain}
+                onClick={sendBeginAgain}
                 tabIndex={-1}
               >
                 NEW GAME
@@ -670,7 +679,7 @@ class StationRace extends React.Component<Configuration, State> {
     );
   }
 
-  private sendInput(input: Input): void {
+  private sendInput(input: Input) {
     const addedState = processInput(this.state, input);
     const newKeys = Object.keys(addedState);
     const remainingState = Object.keys(this.state).reduce(
@@ -679,56 +688,6 @@ class StationRace extends React.Component<Configuration, State> {
       {}
     );
     this.setState({ ...remainingState, ...addedState });
-  }
-
-  private setupNewGame(): void {
-    this.sendInput({ type: "SetupNewGame" });
-  }
-
-  private start(): void {
-    this.sendInput({ type: "Start" });
-  }
-
-  private registerPlayer(i: number) {
-    return (e: React.ChangeEvent<HTMLInputElement>): void => {
-      e.preventDefault();
-      this.sendInput({
-        payload: { i, name: e.target.value },
-        type: "RegisterPlayer"
-      });
-    };
-  }
-
-  private getOffTheTrain(): void {
-    this.sendInput({ type: "GetOffTheTrain" });
-  }
-
-  private goLeft(): void {
-    this.sendInput({ type: "GoLeft" });
-  }
-
-  private goRight(): void {
-    this.sendInput({ type: "GoRight" });
-  }
-
-  private goFirst(): void {
-    this.sendInput({ type: "GoFirst" });
-  }
-
-  private goLast(): void {
-    this.sendInput({ type: "GoLast" });
-  }
-
-  private nextTurn(): void {
-    this.sendInput({ type: "NextTurn" });
-  }
-
-  private playAgain(): void {
-    this.sendInput({ type: "PlayAgain" });
-  }
-
-  private beginAgain(): void {
-    this.sendInput({ type: "BeginAgain" });
   }
 }
 
