@@ -247,19 +247,17 @@ const withCurrentPlayer = (fn: (state: Turn, player: Player) => Player) => (
   )
 });
 
-const goLeft = withCurrentPlayer(
-  (state, player) =>
-    player.station > state.firstStation
-      ? { ...player, station: player.station - 1 }
-      : player
-);
+const goLeft = withCurrentPlayer((state, player) => ({
+  ...player,
+  station:
+    player.station > state.firstStation ? player.station - 1 : state.lastStation
+}));
 
-const goRight = withCurrentPlayer(
-  (state, player) =>
-    player.station < state.lastStation
-      ? { ...player, station: player.station + 1 }
-      : player
-);
+const goRight = withCurrentPlayer((state, player) => ({
+  ...player,
+  station:
+    player.station < state.lastStation ? player.station + 1 : state.firstStation
+}));
 
 const goFirst = withCurrentPlayer((state, player) => ({
   ...player,
