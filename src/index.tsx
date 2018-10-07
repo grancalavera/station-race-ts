@@ -409,7 +409,10 @@ class StationRace extends React.Component<Configuration, State> {
   constructor(props: Configuration) {
     super(props);
     this.state = begin(props);
+
     this.setupNewGame = this.setupNewGame.bind(this);
+    this.start = this.start.bind(this);
+    this.registerPlayer = this.registerPlayer.bind(this);
   }
   public render() {
     const state = this.state;
@@ -453,6 +456,41 @@ class StationRace extends React.Component<Configuration, State> {
             </ul>
           </React.Fragment>
         )}
+
+        {stateIsSetup(state) && (
+          <React.Fragment>
+            <Keyboard onEnter={this.start} />
+            <ul>
+              <li>
+                Add at least {state.minPlayers} players to start the game.
+              </li>
+              <li>You can add up to {state.maxPlayers} players.</li>
+            </ul>
+            {R.range(0, state.maxPlayers).map((_, i) => (
+              <div key={i} className="editor">
+                <input
+                  value={
+                    state.registeredPlayers[i] ? state.registeredPlayers[i] : ""
+                  }
+                  onChange={this.registerPlayer(i)}
+                />{" "}
+              </div>
+            ))}
+
+            {hasEnoughPlayers(state) && (
+              <div className="control-bar">
+                <button
+                  className="control control-large"
+                  onClick={this.start}
+                  tabIndex={-1}
+                >
+                  START
+                </button>
+              </div>
+            )}
+          </React.Fragment>
+        )}
+        <pre>{JSON.stringify(state, null, 2)}</pre>
       </React.Fragment>
     );
   }
@@ -472,12 +510,20 @@ class StationRace extends React.Component<Configuration, State> {
     this.sendInput({ type: "SetupNewGame" });
   }
 
+  private start(): void {
+    this.sendInput({ type: "Start" });
+  }
+
+  private registerPlayer(i: number) {
+    return (e: React.ChangeEvent<HTMLInputElement>): void => {
+      e.preventDefault();
+      const name = e.target.value;
+      this.sendInput({ type: "RegisterPlayer", payload: { i, name } });
+    };
+  }
+
   // private beginAgain(): void {
   //   this.sendInput({ type: "BeginAgain" });
-  // }
-
-  // private start(): void {
-  //   this.sendInput({ type: "Start" });
   // }
 
   // private playAgain(): void {
@@ -508,18 +554,6 @@ class StationRace extends React.Component<Configuration, State> {
   //   this.sendInput({ type: "GoLast" });
   // }
 
-  // private registerPlayer(registration: PlayerRegistration): void {
-  //   this.sendInput({ type: "RegisterPlayer", payload: registration });
-  // }
-
-  private whenStateIs(tag: StateTag): boolean {
-    return this.state.tag === tag;
-  }
-
-  private whenStateIsNot(tag: StateTag): boolean {
-    return !this.whenStateIs(tag);
-  }
-
   // private isCurrentPlayer(game: Game, player: number): boolean {
   //   return game.currentPlayer === player;
   // }
@@ -528,15 +562,13 @@ class StationRace extends React.Component<Configuration, State> {
 // Simulation
 
 ReactDOM.render(
-  <React.Fragment>
-    <StationRace
-      firstStation={1}
-      lastStation={7}
-      minPlayers={2}
-      maxPlayers={4}
-      makeSecretStation={makeSecretStation}
-      registeredPlayers={{}}
-    />
-  </React.Fragment>,
+  <StationRace
+    firstStation={1}
+    lastStation={7}
+    minPlayers={2}
+    maxPlayers={4}
+    makeSecretStation={makeSecretStation}
+    registeredPlayers={{}}
+  />,
   document.getElementById("root") as HTMLElement
 );
