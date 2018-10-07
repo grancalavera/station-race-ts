@@ -3,6 +3,8 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "./index.css";
 
+// Main types
+
 type State = Begin | Setup | Turn | TurnResult | GameOver;
 
 type Input =
@@ -730,7 +732,7 @@ class StationRace extends React.Component<Configuration, State> {
   }
 }
 
-// Simulation
+// Application
 
 ReactDOM.render(
   <StationRace
