@@ -23,6 +23,36 @@ type Input =
 type StateTag = State["tag"];
 type Transition = (state: State, input?: Input) => State;
 
+// State guards
+
+const stateIs = <T extends State>(tags: StateTag[]) => (
+  state: State
+): state is T => R.any(tag => state.tag === tag, tags);
+
+const stateIsNot = <T extends State>(tags: StateTag[]) => (
+  state: State
+): state is Exclude<State, T> => R.all(tag => tag !== state.tag, tags);
+
+const stateTransition = <T extends State>(
+  guardFn: ((state: State) => state is T)
+) => (transFn: Transition, state: State, input?: Input): State =>
+  guardFn(state) ? transFn(state, input) : state;
+
+const stateIsBegin = stateIs<Begin>(["Begin"]);
+const stateIsSetup = stateIs<Setup>(["Setup"]);
+const stateIsTurn = stateIs<Turn>(["Turn"]);
+const stateIsAnyTurn = stateIs<Turn | TurnResult>(["Turn", "TurnResult"]);
+const stateIsTurnResult = stateIs<TurnResult>(["TurnResult"]);
+const stateIsGameOver = stateIs<GameOver>(["GameOver"]);
+
+const stateIsNotGameOver = stateIsNot<GameOver>(["GameOver"]);
+
+const beginTransition = stateTransition<Begin>(stateIsBegin);
+const setupTransition = stateTransition<Setup>(stateIsSetup);
+const turnTransition = stateTransition<Turn>(stateIsTurn);
+const turnResultTransition = stateTransition<TurnResult>(stateIsTurnResult);
+const gameOverTransition = stateTransition<GameOver>(stateIsGameOver);
+
 // States
 
 interface Begin extends Configuration {
@@ -238,36 +268,6 @@ const goLast = withCurrentPlayer((state, player) => ({
   ...player,
   station: state.lastStation
 }));
-
-// State guards
-
-const stateIs = <T extends State>(tags: StateTag[]) => (
-  state: State
-): state is T => R.any(tag => state.tag === tag, tags);
-
-const stateIsNot = <T extends State>(tags: StateTag[]) => (
-  state: State
-): state is Exclude<State, T> => R.all(tag => tag !== state.tag, tags);
-
-const stateTransition = <T extends State>(
-  guardFn: ((state: State) => state is T)
-) => (transFn: Transition, state: State, input?: Input): State =>
-  guardFn(state) ? transFn(state, input) : state;
-
-const stateIsBegin = stateIs<Begin>(["Begin"]);
-const stateIsSetup = stateIs<Setup>(["Setup"]);
-const stateIsTurn = stateIs<Turn>(["Turn"]);
-const stateIsAnyTurn = stateIs<Turn | TurnResult>(["Turn", "TurnResult"]);
-const stateIsTurnResult = stateIs<TurnResult>(["TurnResult"]);
-const stateIsGameOver = stateIs<GameOver>(["GameOver"]);
-
-const stateIsNotGameOver = stateIsNot<GameOver>(["GameOver"]);
-
-const beginTransition = stateTransition<Begin>(stateIsBegin);
-const setupTransition = stateTransition<Setup>(stateIsSetup);
-const turnTransition = stateTransition<Turn>(stateIsTurn);
-const turnResultTransition = stateTransition<TurnResult>(stateIsTurnResult);
-const gameOverTransition = stateTransition<GameOver>(stateIsGameOver);
 
 // State machine
 
