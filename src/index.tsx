@@ -243,13 +243,11 @@ const goLast = withCurrentPlayer((state, player) => ({
 
 const stateIs = <T extends State>(tags: StateTag[]) => (
   state: State
-): state is T => {
-  return R.any(tag => state.tag === tag, tags);
-};
+): state is T => R.any(tag => state.tag === tag, tags);
 
-const stateIsNot = <T extends State>(tag: StateTag) => (
+const stateIsNot = <T extends State>(tags: StateTag[]) => (
   state: State
-): state is Exclude<State, T> => state.tag !== tag;
+): state is Exclude<State, T> => R.all(tag => tag !== state.tag, tags);
 
 const stateTransition = <T extends State>(
   guardFn: ((state: State) => state is T)
@@ -263,7 +261,7 @@ const stateIsAnyTurn = stateIs<Turn | TurnResult>(["Turn", "TurnResult"]);
 const stateIsTurnResult = stateIs<TurnResult>(["TurnResult"]);
 const stateIsGameOver = stateIs<GameOver>(["GameOver"]);
 
-const stateIsNotGameOver = stateIsNot<GameOver>("GameOver");
+const stateIsNotGameOver = stateIsNot<GameOver>(["GameOver"]);
 
 const beginTransition = stateTransition<Begin>(stateIsBegin);
 const setupTransition = stateTransition<Setup>(stateIsSetup);
