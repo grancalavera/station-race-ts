@@ -510,6 +510,9 @@ class StationRace extends React.Component<Configuration, State> {
                 </button>
               </div>
             )}
+            <ul className="small-print">
+              {hasEnoughPlayers(state) && <li>Enter: start game.</li>}
+            </ul>
           </React.Fragment>
         )}
 
