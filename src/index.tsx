@@ -543,7 +543,7 @@ class StationRace extends React.Component<Configuration, State> {
                 <div className="stations">
                   {stations(state).map(someStation => (
                     <code
-                      key={`station${someStation}`}
+                      key={"station" + someStation}
                       className={
                         station === someStation
                           ? "station station-current"
