@@ -229,7 +229,7 @@ const goRight = withCurrentPlayer(
 
 const goFirst = withCurrentPlayer((state, player) => ({
   ...player,
-  station: state.lastStation
+  station: state.firstStation
 }));
 
 const goLast = withCurrentPlayer((state, player) => ({
