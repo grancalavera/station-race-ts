@@ -344,12 +344,12 @@ const stations = ({ firstStation, lastStation }: Configuration): number[] =>
 // UI
 
 interface KeyboardProps {
-  onLeft?: () => void;
-  onRight?: () => void;
-  onShiftLeft?: () => void;
-  onShiftRight?: () => void;
-  onEnter?: () => void;
-  onShiftEnter?: () => void;
+  onLeft: () => void;
+  onRight: () => void;
+  onShiftLeft: () => void;
+  onShiftRight: () => void;
+  onEnter: () => void;
+  onShiftEnter: () => void;
 }
 
 class Keyboard extends React.Component<KeyboardProps> {
