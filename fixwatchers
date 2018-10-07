@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sudo -v
+sudo sysctl fs.inotify.max_user_watches=$(($(cat /proc/sys/fs/inotify/max_user_watches)*2))
