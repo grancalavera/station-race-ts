@@ -1,5 +1,89 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
+* {
+  font-family: monospace;
+}
+
+blockquote {
+  font-style: italic;
+  font-weight: bold;
+  border: 1px solid lightgray;
+  padding: 2em;
+  text-align: center;
+  margin-left: 0;
+  margin-right: 0;
+  background-color: #eeeeee;
+  color: gray;
+}
+
+.control-bar {
+  margin-top: 1em;
+  height: 44px;
+}
+
+.control-bar .control {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.player {
+  border: 1px solid lightgray;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  color: lightgray;
+  background-color: white;
+}
+
+.player.player-current {
+  border-color: black;
+  color: black;
+  background-color: #eeeeee;
+}
+
+.station {
+  color: lightgray;
+  margin-right: 0.5em;
+}
+
+.station.station-current {
+  color: black;
+  font-weight: bold;
+}
+
+.control {
+  width: 44px;
+  height: 44px;
+  margin-right: 0.25em;
+}
+
+.control.control-large {
+  width: 100px;
+}
+
+.small-print {
+  border-top: 1px solid black;
+  padding-top: 1em;
+  font-style: italic;
+  font-size: 0.8em;
+}
+
+.error {
+  color: red;
+  border: 1px solid red;
+  padding: 1em;
+  font-weight: bold;
+  background-color: lightpink;
+}
+
+.editor {
+  margin-bottom: 0.25em;
+}
+
+.editor input {
+  height: 44px;
+  margin-right: 0.5em;
+}
+
+@media screen and (max-width: 800px) {
+  .small-print {
+    display: none;
+  }
 }
