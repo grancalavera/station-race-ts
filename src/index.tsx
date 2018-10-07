@@ -304,44 +304,222 @@ const nextPlayer = (game: Game): number =>
   (game.currentPlayer + 1) % game.players.length;
 
 const isInvalidName = (name: PlayerName) => /^\s*$/.test(name);
+const randInt = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+const makeSecretStation = ({ firstStation, lastStation }: Configuration) =>
+  randInt(firstStation, lastStation);
+
+// UI
+
+interface KeyboardProps {
+  onLeft?: () => void;
+  onRight?: () => void;
+  onShiftLeft?: () => void;
+  onShiftRight?: () => void;
+  onEnter?: () => void;
+  onShiftEnter?: () => void;
+}
+
+class Keyboard extends React.Component<KeyboardProps> {
+  public static defaultProps: KeyboardProps = {
+    onEnter: () => {},
+    onLeft: () => {},
+    onRight: () => {},
+    onShiftEnter: () => {},
+    onShiftLeft: () => {},
+    onShiftRight: () => {}
+  };
+
+  constructor(props: KeyboardProps) {
+    super(props);
+    this.handleKeydown = this.handleKeydown.bind(this);
+  }
+
+  public handleKeydown(e: KeyboardEvent): void {
+    const { shiftKey, key } = e;
+    const {
+      onEnter,
+      onLeft,
+      onRight,
+      onShiftEnter,
+      onShiftLeft,
+      onShiftRight
+    } = this.props;
+
+    switch (shiftKey ? `Shift${key}` : key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        onLeft!();
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        onRight!();
+        break;
+      case "ShiftArrowLeft":
+        e.preventDefault();
+        onShiftLeft!();
+        break;
+      case "ShiftArrowRight":
+        e.preventDefault();
+        onShiftRight!();
+        break;
+      case "Enter":
+        e.preventDefault();
+        onEnter!();
+        break;
+      case "ShiftEnter":
+        e.preventDefault();
+        onShiftEnter!();
+        break;
+      default:
+    }
+  }
+
+  public render() {
+    return null;
+  }
+
+  public componentDidMount() {
+    document.addEventListener("keydown", this.handleKeydown);
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeydown);
+  }
+}
+
+class StationRace extends React.Component<Configuration, State> {
+  constructor(props: Configuration) {
+    super(props);
+    this.state = begin(props);
+    this.setupNewGame = this.setupNewGame.bind(this);
+  }
+  public render() {
+    const state = this.state;
+    return (
+      <React.Fragment>
+        <h1>Station Race!</h1>
+
+        {this.whenStateIsNot("GameOver") && (
+          <blockquote>
+            Get off the train at the secret station to win the game.
+          </blockquote>
+        )}
+
+        {state.tag === "Begin" && (
+          <React.Fragment>
+            <Keyboard onEnter={this.setupNewGame} />
+            <ul>
+              <li>
+                You're in a train running from station {state.firstStation} to
+                station {state.lastStation}.
+              </li>
+              <li>
+                There is a secret station and you need to get off the train
+                there.
+              </li>
+              <li>
+                Be the first one to guess the secret station and win the game!
+              </li>
+            </ul>
+            <div className="control-bar">
+              <button
+                className="control control-large"
+                onClick={this.setupNewGame}
+                tabIndex={-1}
+              >
+                BEGIN
+              </button>
+            </div>
+            <ul className="small-print">
+              <li>Enter: begin the game.</li>
+            </ul>
+          </React.Fragment>
+        )}
+      </React.Fragment>
+    );
+  }
+
+  private sendInput(input: Input): void {
+    const addedState = processInput(this.state, input);
+    const newKeys = Object.keys(addedState);
+    const remainingState = Object.keys(this.state).reduce(
+      (rm, key) =>
+        !R.contains(key, newKeys) ? { ...rm, [key]: undefined } : rm,
+      {}
+    );
+    this.setState({ ...remainingState, ...addedState });
+  }
+
+  private setupNewGame(): void {
+    this.sendInput({ type: "SetupNewGame" });
+  }
+
+  // private beginAgain(): void {
+  //   this.sendInput({ type: "BeginAgain" });
+  // }
+
+  // private start(): void {
+  //   this.sendInput({ type: "Start" });
+  // }
+
+  // private playAgain(): void {
+  //   this.sendInput({ type: "PlayAgain" });
+  // }
+
+  // private getOffTheTrain(): void {
+  //   this.sendInput({ type: "GetOffTheTrain" });
+  // }
+
+  // private nextTurn(): void {
+  //   this.sendInput({ type: "NextTurn" });
+  // }
+
+  // private goLeft(): void {
+  //   this.sendInput({ type: "GoLeft" });
+  // }
+
+  // private goRight(): void {
+  //   this.sendInput({ type: "GoRight" });
+  // }
+
+  // private goFirst(): void {
+  //   this.sendInput({ type: "GoFirst" });
+  // }
+
+  // private goLast(): void {
+  //   this.sendInput({ type: "GoLast" });
+  // }
+
+  // private registerPlayer(registration: PlayerRegistration): void {
+  //   this.sendInput({ type: "RegisterPlayer", payload: registration });
+  // }
+
+  private whenStateIs(tag: StateTag): boolean {
+    return this.state.tag === tag;
+  }
+
+  private whenStateIsNot(tag: StateTag): boolean {
+    return !this.whenStateIs(tag);
+  }
+
+  // private isCurrentPlayer(game: Game, player: number): boolean {
+  //   return game.currentPlayer === player;
+  // }
+}
 
 // Simulation
 
 ReactDOM.render(
-  <pre>
-    {JSON.stringify(
-      [
-        { type: "SetupNewGame" },
-        { type: "RegisterPlayer", payload: { i: 0, name: "Player 1" } },
-        { type: "RegisterPlayer", payload: { i: 1, name: "Player 2" } },
-        { type: "Start" },
-        { type: "GoRight" },
-        { type: "GetOffTheTrain" },
-        { type: "NextTurn" },
-        { type: "GoRight" },
-        { type: "GoRight" },
-        { type: "GetOffTheTrain" }
-      ]
-        .reduce(
-          (history, input: Input) => {
-            const [state] = history;
-            return [processInput(state, input), ...history];
-          },
-          [
-            begin({
-              firstStation: 1,
-              lastStation: 4,
-              makeSecretStation: () => 3,
-              maxPlayers: 4,
-              minPlayers: 2,
-              registeredPlayers: {}
-            })
-          ]
-        )
-        .reverse(),
-      null,
-      2
-    )}
-  </pre>,
+  <React.Fragment>
+    <StationRace
+      firstStation={1}
+      lastStation={7}
+      minPlayers={2}
+      maxPlayers={4}
+      makeSecretStation={makeSecretStation}
+      registeredPlayers={{}}
+    />
+  </React.Fragment>,
   document.getElementById("root") as HTMLElement
 );
