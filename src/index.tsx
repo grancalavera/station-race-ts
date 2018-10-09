@@ -21,7 +21,7 @@ type Input =
   | BeginAgain;
 
 type StateTag = State["tag"];
-type Transition = (state: State, input?: Input) => State;
+type Transition<T extends State> = (state: T, input?: Input) => State;
 
 // State guards
 
@@ -42,18 +42,29 @@ const stateIsNot = <T extends State>(tags: StateTag[]) => (
 
 const stateIsNotGameOver = stateIsNot<GameOver>(["GameOver"]);
 
-// State transition guards
+// Transition guards
 
-const stateTransition = <T extends State>(
-  guardFn: ((state: State) => state is T)
-) => (transFn: Transition, state: State, input?: Input): State =>
-  guardFn(state) ? transFn(state, input) : state;
-
-const beginTransition = stateTransition<Begin>(stateIsBegin);
-const setupTransition = stateTransition<Setup>(stateIsSetup);
-const turnTransition = stateTransition<Turn>(stateIsTurn);
-const turnResultTransition = stateTransition<TurnResult>(stateIsTurnResult);
-const gameOverTransition = stateTransition<GameOver>(stateIsGameOver);
+export const transition = <T extends State>(
+  fn: Transition<T>,
+  state: State,
+  input?: Input
+): State => {
+  const asState = state as State;
+  switch (asState.tag) {
+    case "Begin":
+      return stateIs<T>(["Begin"]) ? fn(state as T, input) : state;
+    case "Setup":
+      return stateIs<T>(["Setup"]) ? fn(state as T, input) : state;
+    case "Turn":
+      return stateIs<T>(["Turn"]) ? fn(state as T, input) : state;
+    case "TurnResult":
+      return stateIs<T>(["TurnResult"]) ? fn(state as T, input) : state;
+    case "GameOver":
+      return stateIs<T>(["GameOver"]) ? fn(state as T, input) : state;
+    default:
+      return assertNever(asState);
+  }
+};
 
 // States
 
@@ -271,32 +282,36 @@ const goLast = withCurrentPlayer((state, player) => ({
 
 // State machine
 
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
+
 const processInput = (state: State, input: Input): State => {
   switch (input.type) {
     case "SetupNewGame":
-      return beginTransition(setup, state);
+      return transition<Begin>(setup, state);
     case "RegisterPlayer":
-      return setupTransition(registerPlayer, state, input);
+      return transition<Setup>(registerPlayer, state, input);
     case "Start":
-      return setupTransition(start, state);
+      return transition<Setup>(start, state);
     case "GoLeft":
-      return turnTransition(goLeft, state);
+      return transition<Turn>(goLeft, state);
     case "GoRight":
-      return turnTransition(goRight, state);
+      return transition<Turn>(goRight, state);
     case "GoFirst":
-      return turnTransition(goFirst, state);
+      return transition<Turn>(goFirst, state);
     case "GoLast":
-      return turnTransition(goLast, state);
+      return transition<Turn>(goLast, state);
     case "GetOffTheTrain":
-      return turnTransition(getOffTheTrain, state);
+      return transition<Turn>(getOffTheTrain, state);
     case "NextTurn":
-      return turnResultTransition(nextTurn, state);
+      return transition<TurnResult>(nextTurn, state);
     case "PlayAgain":
-      return gameOverTransition(playAgain, state);
+      return transition<GameOver>(playAgain, state);
     case "BeginAgain":
-      return gameOverTransition(startAgain, state);
+      return transition<GameOver>(startAgain, state);
     default:
-      return input;
+      return assertNever(input);
   }
 };
 
