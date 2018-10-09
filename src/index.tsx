@@ -42,30 +42,6 @@ const stateIsNot = <T extends State>(tags: StateTag[]) => (
 
 const stateIsNotGameOver = stateIsNot<GameOver>(["GameOver"]);
 
-// Transition guards
-
-export const transition = <T extends State>(
-  fn: Transition<T>,
-  state: State,
-  input?: Input
-): State => {
-  const asState = state as State;
-  switch (asState.tag) {
-    case "Begin":
-      return stateIs<T>(["Begin"]) ? fn(state as T, input) : state;
-    case "Setup":
-      return stateIs<T>(["Setup"]) ? fn(state as T, input) : state;
-    case "Turn":
-      return stateIs<T>(["Turn"]) ? fn(state as T, input) : state;
-    case "TurnResult":
-      return stateIs<T>(["TurnResult"]) ? fn(state as T, input) : state;
-    case "GameOver":
-      return stateIs<T>(["GameOver"]) ? fn(state as T, input) : state;
-    default:
-      return assertNever(asState);
-  }
-};
-
 // States
 
 interface Begin extends Configuration {
@@ -280,11 +256,31 @@ const goLast = withCurrentPlayer((state, player) => ({
   station: state.lastStation
 }));
 
-// State machine
+// Transition guards
 
-function assertNever(x: never): never {
-  throw new Error("Unexpected object: " + x);
-}
+export const transition = <T extends State>(
+  fn: Transition<T>,
+  state: State,
+  input?: Input
+): State => {
+  const asT = state as T;
+
+  switch (state.tag) {
+    case "Begin":
+      return stateIsBegin(state) ? fn(asT) : state;
+    case "Setup":
+      return stateIsSetup(state) ? fn(asT, input) : state;
+    case "Turn":
+      return stateIsTurn(state) ? fn(asT, input) : state;
+    case "TurnResult":
+      return stateIsTurnResult(state) ? fn(asT, input) : state;
+    case "GameOver":
+      return stateIsGameOver(state) ? fn(asT, input) : state;
+    default:
+      return assertNever(state);
+  }
+};
+// State machine
 
 const processInput = (state: State, input: Input): State => {
   switch (input.type) {
@@ -353,6 +349,10 @@ const currentPlayer = (game: Game) => game.players[game.currentPlayer];
 
 const stations = ({ firstStation, lastStation }: Configuration): number[] =>
   R.range(firstStation, lastStation + 1);
+
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
 
 // UI
 
