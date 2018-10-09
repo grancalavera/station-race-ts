@@ -263,23 +263,22 @@ export const transition = <T extends State>(
   state: State,
   input?: Input
 ): State => {
-  const asT = state as T;
-
   switch (state.tag) {
     case "Begin":
-      return stateIsBegin(state) ? fn(asT) : state;
+      return stateIsBegin(state) ? fn(state as T) : state;
     case "Setup":
-      return stateIsSetup(state) ? fn(asT, input) : state;
+      return stateIsSetup(state) ? fn(state as T, input) : state;
     case "Turn":
-      return stateIsTurn(state) ? fn(asT, input) : state;
+      return stateIsTurn(state) ? fn(state as T, input) : state;
     case "TurnResult":
-      return stateIsTurnResult(state) ? fn(asT, input) : state;
+      return stateIsTurnResult(state) ? fn(state as T, input) : state;
     case "GameOver":
-      return stateIsGameOver(state) ? fn(asT, input) : state;
+      return stateIsGameOver(state) ? fn(state as T, input) : state;
     default:
       return assertNever(state);
   }
 };
+
 // State machine
 
 const processInput = (state: State, input: Input): State => {
