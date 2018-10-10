@@ -625,6 +625,43 @@ function Game(state: GameProps) {
   );
 }
 
+type GameOverPromptProps = GameOver & {
+  onPlayAgain: () => void;
+  onBeginAgain: () => void;
+};
+
+function GameOverPrompt(state: GameOverPromptProps) {
+  const { onPlayAgain, onBeginAgain } = state;
+  return (
+    <React.Fragment>
+      <Keyboard onEnter={onPlayAgain} onShiftEnter={onBeginAgain} />
+      <h2>Game Over!</h2>
+      <p>{state.winner.name} won the game.</p>
+      <p>The secret station was station {state.winner.station}.</p>
+      <div className="control-bar">
+        <button
+          className="control control-large"
+          onClick={onPlayAgain}
+          tabIndex={-1}
+        >
+          PLAY AGAIN
+        </button>
+        <button
+          className="control control-large"
+          onClick={onBeginAgain}
+          tabIndex={-1}
+        >
+          NEW GAME
+        </button>
+      </div>
+      <ul className="small-print">
+        <li>Enter: play playAgain.</li>
+        <li>Shift+Enter: play a new game.</li>
+      </ul>
+    </React.Fragment>
+  );
+}
+
 class StationRace extends React.Component<Configuration, State> {
   constructor(props: Configuration) {
     super(props);
@@ -685,32 +722,11 @@ class StationRace extends React.Component<Configuration, State> {
         )}
 
         {stateIsGameOver(state) && (
-          <React.Fragment>
-            <Keyboard onEnter={sendPlayAgain} onShiftEnter={sendBeginAgain} />
-            <h2>Game Over!</h2>
-            <p>{state.winner.name} won the game.</p>
-            <p>The secret station was station {state.winner.station}.</p>
-            <div className="control-bar">
-              <button
-                className="control control-large"
-                onClick={sendPlayAgain}
-                tabIndex={-1}
-              >
-                PLAY AGAIN
-              </button>
-              <button
-                className="control control-large"
-                onClick={sendBeginAgain}
-                tabIndex={-1}
-              >
-                NEW GAME
-              </button>
-            </div>
-            <ul className="small-print">
-              <li>Enter: play playAgain.</li>
-              <li>Shift+Enter: play a new game.</li>
-            </ul>
-          </React.Fragment>
+          <GameOverPrompt
+            {...state}
+            onPlayAgain={sendPlayAgain}
+            onBeginAgain={sendBeginAgain}
+          />
         )}
         <pre>{JSON.stringify(state, null, 2)}</pre>
       </React.Fragment>
