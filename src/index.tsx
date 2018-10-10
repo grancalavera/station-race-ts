@@ -1,6 +1,7 @@
 import * as R from "ramda";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { createStore } from "redux";
 import "./index.css";
 
 // Main types
@@ -281,12 +282,26 @@ export const transition = <T extends State>(
 
 // State machine
 
-const reducer = (state: State, input: Action): State => {
-  switch (input.type) {
+// https://github.com/reduxjs/redux/issues/186
+// this is usually not a problem in redux, because
+// reducers just ignore actions they don't know
+// how to handle, but because here we want to
+// have exhaustive checks over all action types,
+// we need to exit early if the action is
+// an internal redux action.
+const shouldIgnoreReduxAction = (action: any): boolean =>
+  action && action.type && /^@@/.test(action.type);
+
+const reducer = (state: State, action: Action): State => {
+  if (shouldIgnoreReduxAction(action)) {
+    return state;
+  }
+
+  switch (action.type) {
     case "SetupNewGame":
       return transition<Begin>(setup, state);
     case "RegisterPlayer":
-      return transition<Setup>(registerPlayer, state, input);
+      return transition<Setup>(registerPlayer, state, action);
     case "Start":
       return transition<Setup>(start, state);
     case "GoLeft":
@@ -306,9 +321,13 @@ const reducer = (state: State, input: Action): State => {
     case "BeginAgain":
       return transition<GameOver>(startAgain, state);
     default:
-      return assertNever(input);
+      return assertNever(action);
   }
 };
+
+function assertNever(x: never): never {
+  throw new Error("Unexpected object: " + x);
+}
 
 // Utils
 
@@ -348,10 +367,6 @@ const currentPlayer = (game: Game) => game.players[game.currentPlayer];
 
 const stations = ({ firstStation, lastStation }: Configuration): number[] =>
   R.range(firstStation, lastStation + 1);
-
-function assertNever(x: never): never {
-  throw new Error("Unexpected object: " + x);
-}
 
 // UI
 
@@ -662,27 +677,36 @@ function GameOverPrompt(state: GameOverPromptProps) {
   );
 }
 
-class StationRace extends React.Component<Configuration, State> {
-  constructor(props: Configuration) {
-    super(props);
-    this.state = begin(props);
-  }
+const store = createStore<State, Action, any, any>(
+  reducer,
+  begin({
+    firstStation: 1,
+    lastStation: 7,
+    makeSecretStation,
+    maxPlayers: 4,
+    minPlayers: 2,
+    registeredPlayers: {}
+  })
+);
 
+const dispatch = store.dispatch;
+
+class StationRace extends React.Component<State> {
   public render() {
-    const state = this.state;
+    const state = this.props;
 
-    const sendSetupNewGame = () => this.sendInput({ type: "SetupNewGame" });
-    const sendStart = () => this.sendInput({ type: "Start" });
-    const sendGetOffTheTrain = () => this.sendInput({ type: "GetOffTheTrain" });
-    const sendGoLeft = () => this.sendInput({ type: "GoLeft" });
-    const sendGoRight = () => this.sendInput({ type: "GoRight" });
-    const sendGoFirst = () => this.sendInput({ type: "GoFirst" });
-    const sendGoLast = () => this.sendInput({ type: "GoLast" });
-    const sendNextTurn = () => this.sendInput({ type: "NextTurn" });
-    const sendPlayAgain = () => this.sendInput({ type: "PlayAgain" });
-    const sendBeginAgain = () => this.sendInput({ type: "BeginAgain" });
+    const sendSetupNewGame = () => dispatch({ type: "SetupNewGame" });
+    const sendStart = () => dispatch({ type: "Start" });
+    const sendGetOffTheTrain = () => dispatch({ type: "GetOffTheTrain" });
+    const sendGoLeft = () => dispatch({ type: "GoLeft" });
+    const sendGoRight = () => dispatch({ type: "GoRight" });
+    const sendGoFirst = () => dispatch({ type: "GoFirst" });
+    const sendGoLast = () => dispatch({ type: "GoLast" });
+    const sendNextTurn = () => dispatch({ type: "NextTurn" });
+    const sendPlayAgain = () => dispatch({ type: "PlayAgain" });
+    const sendBeginAgain = () => dispatch({ type: "BeginAgain" });
     const sendRegisterPlayer = (player: PlayerRegistration) =>
-      this.sendInput({
+      dispatch({
         payload: player,
         type: "RegisterPlayer"
       });
@@ -732,29 +756,14 @@ class StationRace extends React.Component<Configuration, State> {
       </React.Fragment>
     );
   }
-
-  private sendInput(input: Action) {
-    const addedState = reducer(this.state, input);
-    const newKeys = Object.keys(addedState);
-    const remainingState = Object.keys(this.state).reduce(
-      (rm, key) =>
-        !R.contains(key, newKeys) ? { ...rm, [key]: undefined } : rm,
-      {}
-    );
-    this.setState({ ...remainingState, ...addedState });
-  }
 }
 
 // Application
+store.subscribe(render);
+const el = document.getElementById("root") as HTMLElement;
 
-ReactDOM.render(
-  <StationRace
-    firstStation={1}
-    lastStation={7}
-    minPlayers={2}
-    maxPlayers={4}
-    makeSecretStation={makeSecretStation}
-    registeredPlayers={{}}
-  />,
-  document.getElementById("root") as HTMLElement
-);
+function render() {
+  ReactDOM.render(<StationRace {...store.getState()} />, el);
+}
+
+render();
