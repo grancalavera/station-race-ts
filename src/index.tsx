@@ -456,12 +456,12 @@ function Prompt(state: PromptProps) {
   );
 }
 
-function Setup(
-  state: Setup & {
-    onStart: () => void;
-    onRegisterPlayer: (player: PlayerRegistration) => void;
-  }
-) {
+type GameSetupProps = Setup & {
+  onStart: () => void;
+  onRegisterPlayer: (player: PlayerRegistration) => void;
+};
+
+function GameSetup(state: GameSetupProps) {
   const { onStart, onRegisterPlayer } = state;
   const handleOnChange = (i: number) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -665,7 +665,7 @@ class StationRace extends React.Component<Configuration, State> {
         )}
 
         {stateIsSetup(state) && (
-          <Setup
+          <GameSetup
             {...state}
             onStart={sendStart}
             onRegisterPlayer={sendRegisterPlayer}
