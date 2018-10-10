@@ -7,7 +7,7 @@ import "./index.css";
 
 type State = Begin | Setup | Turn | TurnResult | GameOver;
 
-type Input =
+type Action =
   | SetupNewGame
   | Start
   | RegisterPlayer
@@ -21,7 +21,7 @@ type Input =
   | BeginAgain;
 
 type StateTag = State["tag"];
-type Transition<T extends State> = (state: T, input?: Input) => State;
+type Transition<T extends State> = (state: T, input?: Action) => State;
 
 // State guards
 
@@ -261,7 +261,7 @@ const goLast = withCurrentPlayer((state, player) => ({
 export const transition = <T extends State>(
   fn: Transition<T>,
   state: State,
-  input?: Input
+  input?: Action
 ): State => {
   switch (state.tag) {
     case "Begin":
@@ -281,7 +281,7 @@ export const transition = <T extends State>(
 
 // State machine
 
-const processInput = (state: State, input: Input): State => {
+const reducer = (state: State, input: Action): State => {
   switch (input.type) {
     case "SetupNewGame":
       return transition<Begin>(setup, state);
@@ -682,8 +682,8 @@ class StationRace extends React.Component<Configuration, State> {
     );
   }
 
-  private sendInput(input: Input) {
-    const addedState = processInput(this.state, input);
+  private sendInput(input: Action) {
+    const addedState = reducer(this.state, input);
     const newKeys = Object.keys(addedState);
     const remainingState = Object.keys(this.state).reduce(
       (rm, key) =>
