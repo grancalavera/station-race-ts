@@ -423,7 +423,7 @@ class Keyboard extends React.Component<KeyboardProps> {
   }
 }
 
-function Begin(state: Begin & { onSetupNewGame: () => void }) {
+function Prompt(state: Begin & { onSetupNewGame: () => void }) {
   const { onSetupNewGame } = state;
   return (
     <React.Fragment>
@@ -659,7 +659,7 @@ class StationRace extends React.Component<Configuration, State> {
         )}
 
         {stateIsBegin(state) && (
-          <Begin {...state} onSetupNewGame={sendSetupNewGame} />
+          <Prompt {...state} onSetupNewGame={sendSetupNewGame} />
         )}
 
         {stateIsSetup(state) && (
