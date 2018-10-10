@@ -423,7 +423,9 @@ class Keyboard extends React.Component<KeyboardProps> {
   }
 }
 
-function Prompt(state: Begin & { onSetupNewGame: () => void }) {
+type PromptProps = Begin & { onSetupNewGame: () => void };
+
+function Prompt(state: PromptProps) {
   const { onSetupNewGame } = state;
   return (
     <React.Fragment>
