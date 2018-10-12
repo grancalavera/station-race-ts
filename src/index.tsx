@@ -66,50 +66,62 @@ interface GameOver extends Configuration {
   winner: Player;
 }
 
-// Inputs
+// Actions
 
-interface SetupNewGame {
+// https://github.com/reduxjs/redux/issues/186
+// this is usually not a problem in redux, because
+// reducers just ignore actions they don't know
+// how to handle, but because here we want to
+// have exhaustive checks over all action types,
+// we need to exit early if the action is
+// an internal redux action.
+
+interface KnownAction {
+  isKnown: boolean;
+}
+
+interface SetupNewGame extends KnownAction {
   type: "SetupNewGame";
 }
 
-interface RegisterPlayer {
+interface RegisterPlayer extends KnownAction {
   type: "RegisterPlayer";
   payload: PlayerRegistration;
 }
 
-interface Start {
+interface Start extends KnownAction {
   type: "Start";
 }
 
-interface GetOffTheTrain {
+interface GetOffTheTrain extends KnownAction {
   type: "GetOffTheTrain";
 }
 
-interface NextTurn {
+interface NextTurn extends KnownAction {
   type: "NextTurn";
 }
 
-interface GoLeft {
+interface GoLeft extends KnownAction {
   type: "GoLeft";
 }
 
-interface GoRight {
+interface GoRight extends KnownAction {
   type: "GoRight";
 }
 
-interface GoFirst {
+interface GoFirst extends KnownAction {
   type: "GoFirst";
 }
 
-interface GoLast {
+interface GoLast extends KnownAction {
   type: "GoLast";
 }
 
-interface PlayAgain {
+interface PlayAgain extends KnownAction {
   type: "PlayAgain";
 }
 
-interface BeginAgain {
+interface BeginAgain extends KnownAction {
   type: "BeginAgain";
 }
 
@@ -282,18 +294,8 @@ export const transition = <T extends State>(
 
 // State machine
 
-// https://github.com/reduxjs/redux/issues/186
-// this is usually not a problem in redux, because
-// reducers just ignore actions they don't know
-// how to handle, but because here we want to
-// have exhaustive checks over all action types,
-// we need to exit early if the action is
-// an internal redux action.
-const shouldIgnoreReduxAction = (action: any): boolean =>
-  action && action.type && /^@@/.test(action.type);
-
 const reducer = (state: State, action: Action): State => {
-  if (shouldIgnoreReduxAction(action)) {
+  if (!action.isKnown) {
     return state;
   }
 
@@ -689,7 +691,7 @@ const store = createStore<State, Action, any, any>(
   })
 );
 
-const dispatch = store.dispatch;
+const dispatch = (action: any) => store.dispatch({ ...action, isKnown: true });
 
 class StationRace extends React.Component<State> {
   public render() {
