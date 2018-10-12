@@ -75,53 +75,54 @@ interface GameOver extends Configuration {
 // have exhaustive checks over all action types,
 // we need to exit early if the action is
 // an internal redux action.
+// ... and known actions can only be known actions
 
-interface KnownAction {
-  isKnown: boolean;
-}
+type KnownAction = Action & {
+  kind: "KnownAction";
+};
 
-interface SetupNewGame extends KnownAction {
+interface SetupNewGame {
   type: "SetupNewGame";
 }
 
-interface RegisterPlayer extends KnownAction {
+interface RegisterPlayer {
   type: "RegisterPlayer";
   payload: PlayerRegistration;
 }
 
-interface Start extends KnownAction {
+interface Start {
   type: "Start";
 }
 
-interface GetOffTheTrain extends KnownAction {
+interface GetOffTheTrain {
   type: "GetOffTheTrain";
 }
 
-interface NextTurn extends KnownAction {
+interface NextTurn {
   type: "NextTurn";
 }
 
-interface GoLeft extends KnownAction {
+interface GoLeft {
   type: "GoLeft";
 }
 
-interface GoRight extends KnownAction {
+interface GoRight {
   type: "GoRight";
 }
 
-interface GoFirst extends KnownAction {
+interface GoFirst {
   type: "GoFirst";
 }
 
-interface GoLast extends KnownAction {
+interface GoLast {
   type: "GoLast";
 }
 
-interface PlayAgain extends KnownAction {
+interface PlayAgain {
   type: "PlayAgain";
 }
 
-interface BeginAgain extends KnownAction {
+interface BeginAgain {
   type: "BeginAgain";
 }
 
@@ -294,8 +295,10 @@ export const transition = <T extends State>(
 
 // State machine
 
-const reducer = (state: State, action: Action): State => {
-  if (!action.isKnown) {
+const reducer = (state: State, action: KnownAction): State => {
+  // if the kind isn't KnownAction, it means something
+  // is sending us dodgy actions in runtime
+  if (action.kind !== "KnownAction") {
     return state;
   }
 
@@ -691,7 +694,8 @@ const store = createStore<State, Action, any, any>(
   })
 );
 
-const dispatch = (action: any) => store.dispatch({ ...action, isKnown: true });
+const dispatch = (action: Action) =>
+  store.dispatch({ ...action, kind: "KnownAction" } as KnownAction);
 
 class StationRace extends React.Component<State> {
   public render() {
