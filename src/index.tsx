@@ -1,6 +1,7 @@
 import * as R from "ramda";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { connect, Provider } from "react-redux";
 import { createStore } from "redux";
 import "./index.css";
 
@@ -443,6 +444,20 @@ class Keyboard extends React.Component<KeyboardProps> {
   }
 }
 
+function Header(state: State) {
+  return (
+    <React.Fragment>
+      <h1>Station Race!</h1>
+
+      {stateIsNotGameOver(state) && (
+        <blockquote>
+          Get off the train at the secret station to win the game.
+        </blockquote>
+      )}
+    </React.Fragment>
+  );
+}
+
 type PromptProps = Begin & { onSetupNewGame: () => void };
 
 function Prompt(state: PromptProps) {
@@ -694,78 +709,82 @@ const store = createStore<State, Action, any, any>(
   })
 );
 
-const dispatch = (action: Action) =>
-  store.dispatch({ ...action, kind: "KnownAction" } as KnownAction);
-
 // Action Creators
 
-const sendSetupNewGame = () => dispatch({ type: "SetupNewGame" });
-const sendStart = () => dispatch({ type: "Start" });
-const sendGetOffTheTrain = () => dispatch({ type: "GetOffTheTrain" });
-const sendGoLeft = () => dispatch({ type: "GoLeft" });
-const sendGoRight = () => dispatch({ type: "GoRight" });
-const sendGoFirst = () => dispatch({ type: "GoFirst" });
-const sendGoLast = () => dispatch({ type: "GoLast" });
-const sendNextTurn = () => dispatch({ type: "NextTurn" });
-const sendPlayAgain = () => dispatch({ type: "PlayAgain" });
-const sendBeginAgain = () => dispatch({ type: "BeginAgain" });
+const acknowledge = (action: Action): KnownAction => ({
+  ...action,
+  kind: "KnownAction"
+});
+
+const sendSetupNewGame = () => acknowledge({ type: "SetupNewGame" });
+const sendStart = () => acknowledge({ type: "Start" });
+const sendGetOffTheTrain = () => acknowledge({ type: "GetOffTheTrain" });
+const sendGoLeft = () => acknowledge({ type: "GoLeft" });
+const sendGoRight = () => acknowledge({ type: "GoRight" });
+const sendGoFirst = () => acknowledge({ type: "GoFirst" });
+const sendGoLast = () => acknowledge({ type: "GoLast" });
+const sendNextTurn = () => acknowledge({ type: "NextTurn" });
+const sendPlayAgain = () => acknowledge({ type: "PlayAgain" });
+const sendBeginAgain = () => acknowledge({ type: "BeginAgain" });
 const sendRegisterPlayer = (player: PlayerRegistration) =>
-  dispatch({
+  acknowledge({
     payload: player,
     type: "RegisterPlayer"
   });
 
+// Connected components
+
+const CHeader = connect((state: State) => state)(Header);
+
+const CPrompt = connect(
+  (state: Begin) => state,
+  { onSetupNewGame: sendSetupNewGame }
+)(Prompt);
+
+const CGameSetup = connect(
+  (state: Setup) => state,
+  {
+    onRegisterPlayer: sendRegisterPlayer,
+    onStart: sendStart
+  }
+)(GameSetup);
+
+const CGame = connect(
+  (state: Turn | TurnResult) => state,
+  {
+    onGetOffTheTrain: sendGetOffTheTrain,
+    onGoFirst: sendGoFirst,
+    onGoLast: sendGoLast,
+    onGoLeft: sendGoLeft,
+    onGoRight: sendGoRight,
+    onNextTurn: sendNextTurn
+  }
+)(Game);
+
+const CGameOverPrompt = connect(
+  (state: GameOver) => state,
+  {
+    onBeginAgain: sendBeginAgain,
+    onPlayAgain: sendPlayAgain
+  }
+)(GameOverPrompt);
+
 const StationRace = (state: State) => (
   <React.Fragment>
-    <h1>Station Race!</h1>
-
-    {stateIsNotGameOver(state) && (
-      <blockquote>
-        Get off the train at the secret station to win the game.
-      </blockquote>
-    )}
-
-    {stateIsBegin(state) && (
-      <Prompt {...state} onSetupNewGame={sendSetupNewGame} />
-    )}
-
-    {stateIsSetup(state) && (
-      <GameSetup
-        {...state}
-        onStart={sendStart}
-        onRegisterPlayer={sendRegisterPlayer}
-      />
-    )}
-
-    {stateIsAnyTurn(state) && (
-      <Game
-        {...state}
-        onGetOffTheTrain={sendGetOffTheTrain}
-        onGoFirst={sendGoFirst}
-        onGoLast={sendGoLast}
-        onGoLeft={sendGoLeft}
-        onGoRight={sendGoRight}
-        onNextTurn={sendNextTurn}
-      />
-    )}
-
-    {stateIsGameOver(state) && (
-      <GameOverPrompt
-        {...state}
-        onPlayAgain={sendPlayAgain}
-        onBeginAgain={sendBeginAgain}
-      />
-    )}
+    <CHeader />
+    {stateIsBegin(state) && <CPrompt />}
+    {stateIsSetup(state) && <CGameSetup />}
+    {stateIsAnyTurn(state) && <CGame />}
+    {stateIsGameOver(state) && <CGameOverPrompt />}
     <pre>{JSON.stringify(state, null, 2)}</pre>
   </React.Fragment>
 );
 
-// Application
-store.subscribe(render);
-const el = document.getElementById("root") as HTMLElement;
+const CStationRace = connect((state: State) => state)(StationRace);
 
-function render() {
-  ReactDOM.render(<StationRace {...store.getState()} />, el);
-}
-
-render();
+ReactDOM.render(
+  <Provider store={store}>
+    <CStationRace />
+  </Provider>,
+  document.getElementById("root") as HTMLElement
+);
