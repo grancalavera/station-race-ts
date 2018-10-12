@@ -715,56 +715,50 @@ const sendRegisterPlayer = (player: PlayerRegistration) =>
     type: "RegisterPlayer"
   });
 
-class StationRace extends React.Component<State> {
-  public render() {
-    const state = this.props;
+const StationRace = (state: State) => (
+  <React.Fragment>
+    <h1>Station Race!</h1>
 
-    return (
-      <React.Fragment>
-        <h1>Station Race!</h1>
+    {stateIsNotGameOver(state) && (
+      <blockquote>
+        Get off the train at the secret station to win the game.
+      </blockquote>
+    )}
 
-        {stateIsNotGameOver(state) && (
-          <blockquote>
-            Get off the train at the secret station to win the game.
-          </blockquote>
-        )}
+    {stateIsBegin(state) && (
+      <Prompt {...state} onSetupNewGame={sendSetupNewGame} />
+    )}
 
-        {stateIsBegin(state) && (
-          <Prompt {...state} onSetupNewGame={sendSetupNewGame} />
-        )}
+    {stateIsSetup(state) && (
+      <GameSetup
+        {...state}
+        onStart={sendStart}
+        onRegisterPlayer={sendRegisterPlayer}
+      />
+    )}
 
-        {stateIsSetup(state) && (
-          <GameSetup
-            {...state}
-            onStart={sendStart}
-            onRegisterPlayer={sendRegisterPlayer}
-          />
-        )}
+    {stateIsAnyTurn(state) && (
+      <Game
+        {...state}
+        onGetOffTheTrain={sendGetOffTheTrain}
+        onGoFirst={sendGoFirst}
+        onGoLast={sendGoLast}
+        onGoLeft={sendGoLeft}
+        onGoRight={sendGoRight}
+        onNextTurn={sendNextTurn}
+      />
+    )}
 
-        {stateIsAnyTurn(state) && (
-          <Game
-            {...state}
-            onGetOffTheTrain={sendGetOffTheTrain}
-            onGoFirst={sendGoFirst}
-            onGoLast={sendGoLast}
-            onGoLeft={sendGoLeft}
-            onGoRight={sendGoRight}
-            onNextTurn={sendNextTurn}
-          />
-        )}
-
-        {stateIsGameOver(state) && (
-          <GameOverPrompt
-            {...state}
-            onPlayAgain={sendPlayAgain}
-            onBeginAgain={sendBeginAgain}
-          />
-        )}
-        <pre>{JSON.stringify(state, null, 2)}</pre>
-      </React.Fragment>
-    );
-  }
-}
+    {stateIsGameOver(state) && (
+      <GameOverPrompt
+        {...state}
+        onPlayAgain={sendPlayAgain}
+        onBeginAgain={sendBeginAgain}
+      />
+    )}
+    <pre>{JSON.stringify(state, null, 2)}</pre>
+  </React.Fragment>
+);
 
 // Application
 store.subscribe(render);
