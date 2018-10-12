@@ -697,25 +697,27 @@ const store = createStore<State, Action, any, any>(
 const dispatch = (action: Action) =>
   store.dispatch({ ...action, kind: "KnownAction" } as KnownAction);
 
+// Action Creators
+
+const sendSetupNewGame = () => dispatch({ type: "SetupNewGame" });
+const sendStart = () => dispatch({ type: "Start" });
+const sendGetOffTheTrain = () => dispatch({ type: "GetOffTheTrain" });
+const sendGoLeft = () => dispatch({ type: "GoLeft" });
+const sendGoRight = () => dispatch({ type: "GoRight" });
+const sendGoFirst = () => dispatch({ type: "GoFirst" });
+const sendGoLast = () => dispatch({ type: "GoLast" });
+const sendNextTurn = () => dispatch({ type: "NextTurn" });
+const sendPlayAgain = () => dispatch({ type: "PlayAgain" });
+const sendBeginAgain = () => dispatch({ type: "BeginAgain" });
+const sendRegisterPlayer = (player: PlayerRegistration) =>
+  dispatch({
+    payload: player,
+    type: "RegisterPlayer"
+  });
+
 class StationRace extends React.Component<State> {
   public render() {
     const state = this.props;
-
-    const sendSetupNewGame = () => dispatch({ type: "SetupNewGame" });
-    const sendStart = () => dispatch({ type: "Start" });
-    const sendGetOffTheTrain = () => dispatch({ type: "GetOffTheTrain" });
-    const sendGoLeft = () => dispatch({ type: "GoLeft" });
-    const sendGoRight = () => dispatch({ type: "GoRight" });
-    const sendGoFirst = () => dispatch({ type: "GoFirst" });
-    const sendGoLast = () => dispatch({ type: "GoLast" });
-    const sendNextTurn = () => dispatch({ type: "NextTurn" });
-    const sendPlayAgain = () => dispatch({ type: "PlayAgain" });
-    const sendBeginAgain = () => dispatch({ type: "BeginAgain" });
-    const sendRegisterPlayer = (player: PlayerRegistration) =>
-      dispatch({
-        payload: player,
-        type: "RegisterPlayer"
-      });
 
     return (
       <React.Fragment>
