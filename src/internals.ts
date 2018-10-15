@@ -176,10 +176,10 @@ const setup = (state: Begin): Setup => ({
   )
 });
 
-export const start = (state: Setup): Setup | Turn =>
+const start = (state: Setup): Setup | Turn =>
   hasEnoughPlayers(state) ? turn(state) : state;
 
-export const turn = (state: Setup): Turn => {
+const turn = (state: Setup): Turn => {
   return {
     ...state,
     tag: "Turn",
@@ -195,40 +195,39 @@ export const turn = (state: Setup): Turn => {
   };
 };
 
-export const getOffTheTrain = (state: Turn): GameOver | TurnResult =>
+const getOffTheTrain = (state: Turn): GameOver | TurnResult =>
   hasWinner(state) ? gameOver(state) : turnResult(state);
 
-export const gameOver = (state: Turn): GameOver => ({
+const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
   winner: winner(state)!
 });
 
-export const turnResult = (state: Turn): TurnResult => ({
+const turnResult = (state: Turn): TurnResult => ({
   ...state,
   tag: "TurnResult"
 });
 
-export const nextTurn = (state: TurnResult): Turn => ({
+const nextTurn = (state: TurnResult): Turn => ({
   ...state,
   tag: "Turn",
 
   currentPlayer: nextPlayer(state as Game)
 });
 
-export const playAgain = (state: GameOver): Turn =>
+const playAgain = (state: GameOver): Turn =>
   turn({
     ...configuration(state),
     tag: "Setup"
   });
 
-export const startAgain = (state: GameOver): Begin =>
-  begin(configuration(state));
+const startAgain = (state: GameOver): Begin => begin(configuration(state));
 
 // Transition identities
 
-export const registerPlayer = (state: Setup, input: RegisterPlayer): Setup => {
+const registerPlayer = (state: Setup, input: RegisterPlayer): Setup => {
   const { i, name } = input.payload;
   return {
     ...state,
@@ -239,33 +238,33 @@ export const registerPlayer = (state: Setup, input: RegisterPlayer): Setup => {
   };
 };
 
-export const withCurrentPlayer = (
-  fn: (state: Turn, player: Player) => Player
-) => (state: Turn): Turn => ({
+const withCurrentPlayer = (fn: (state: Turn, player: Player) => Player) => (
+  state: Turn
+): Turn => ({
   ...state,
   players: state.players.map(
     (player, i) => (i === state.currentPlayer ? fn(state, player) : player)
   )
 });
 
-export const goLeft = withCurrentPlayer((state, player) => ({
+const goLeft = withCurrentPlayer((state, player) => ({
   ...player,
   station:
     player.station > state.firstStation ? player.station - 1 : state.lastStation
 }));
 
-export const goRight = withCurrentPlayer((state, player) => ({
+const goRight = withCurrentPlayer((state, player) => ({
   ...player,
   station:
     player.station < state.lastStation ? player.station + 1 : state.firstStation
 }));
 
-export const goFirst = withCurrentPlayer((state, player) => ({
+const goFirst = withCurrentPlayer((state, player) => ({
   ...player,
   station: state.firstStation
 }));
 
-export const goLast = withCurrentPlayer((state, player) => ({
+const goLast = withCurrentPlayer((state, player) => ({
   ...player,
   station: state.lastStation
 }));
@@ -307,13 +306,13 @@ export const reducer = (state: State, action: KnownAction): State => {
   }
 };
 
+// Utils
+
 function assertNever(x: never): never {
   throw new Error("Unexpected object: " + x);
 }
 
-// Utils
-
-export const configuration: (state: State) => Configuration = R.pick([
+const configuration: (state: State) => Configuration = R.pick([
   "firstStation",
   "lastStation",
   "minPlayers",
@@ -336,7 +335,7 @@ export const nextPlayer = (game: Game): number =>
 
 export const isInvalidName = (name: PlayerName) => /^\s*$/.test(name);
 
-export const randInt = (min: number, max: number) =>
+const randInt = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
 
 export const makeSecretStation = ({
@@ -356,6 +355,14 @@ export const stations = ({
 
 // Action Creators
 
+// https://github.com/reduxjs/redux/issues/186
+// this is usually not a problem in redux, because
+// reducers just ignore actions they don't know
+// how to handle, but because here we want to
+// have exhaustive checks over all action types,
+// we need to exit early if the action is
+// an internal redux action.
+// ... and known actions can only be known actions
 const acknowledge = (action: Action): KnownAction => ({
   ...action,
   kind: "KnownAction"

@@ -16,7 +16,7 @@ const StationRace = (state: State) => (
     {stateIsSetup(state) && <GameSetup />}
     {stateIsAnyTurn(state) && <Game />}
     {stateIsGameOver(state) && <GameOverPrompt />}
-    <pre>{JSON.stringify(state, null, 2)}</pre>
+    {/* <pre>{JSON.stringify(state, null, 2)}</pre> */}
   </React.Fragment>
 );
 
