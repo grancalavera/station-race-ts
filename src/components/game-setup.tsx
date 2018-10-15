@@ -1,6 +1,6 @@
 import * as R from "ramda";
 import * as React from "react";
-import { hasEnoughPlayers, PlayerRegistration, Setup } from "src/internals";
+import { hasEnoughPlayers, PlayerRegistration, Setup } from "src/station-race";
 import Keyboard from "./keyboard";
 
 type GameSetupProps = Setup & {

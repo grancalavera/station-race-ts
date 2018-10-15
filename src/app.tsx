@@ -7,7 +7,7 @@ import {
   stateIsBegin,
   stateIsGameOver,
   stateIsSetup
-} from "./internals";
+} from "./station-race";
 
 const StationRace = (state: State) => (
   <React.Fragment>

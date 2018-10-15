@@ -7,7 +7,7 @@ import {
   stations,
   Turn,
   TurnResult
-} from "src/internals";
+} from "src/station-race";
 import Keyboard from "./keyboard";
 
 type GameProps = (Turn | TurnResult) & {

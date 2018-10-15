@@ -1,5 +1,5 @@
 import * as React from "react";
-import { GameOver } from "src/internals";
+import { GameOver } from "src/station-race";
 import Keyboard from "./keyboard";
 
 type GameOverPromptProps = GameOver & {

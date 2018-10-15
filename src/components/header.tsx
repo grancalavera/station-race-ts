@@ -1,5 +1,5 @@
 import * as React from "react";
-import { State, stateIsNotGameOver } from "src/internals";
+import { State, stateIsNotGameOver } from "src/station-race";
 
 export default function Header(state: State) {
   return (

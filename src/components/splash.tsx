@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Begin } from "src/internals";
+import { Begin } from "src/station-race";
 import Keyboard from "./keyboard";
 
 type SplashProps = Begin & { onSetupNewGame: () => void };

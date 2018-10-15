@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { Action, createStore } from "redux";
 import { default as StationRace } from "./app";
 import "./index.css";
-import { begin, makeSecretStation, reducer, State } from "./internals";
+import { begin, makeSecretStation, reducer, State } from "./station-race";
 
 const store = createStore<State, Action, any, any>(
   reducer,

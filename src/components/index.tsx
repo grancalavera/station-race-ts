@@ -17,7 +17,7 @@ import {
   State,
   Turn,
   TurnResult
-} from "src/internals";
+} from "src/station-race";
 
 import { default as GameComponent } from "./game";
 import { default as GameOverComponent } from "./game-over";
