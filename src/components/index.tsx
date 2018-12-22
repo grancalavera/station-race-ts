@@ -18,7 +18,6 @@ import {
   Turn,
   TurnResult
 } from "src/station-race";
-
 import { default as GameComponent } from "./game";
 import { default as GameOverComponent } from "./game-over";
 import { default as GameSetupComponent } from "./game-setup";
