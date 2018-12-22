@@ -91,13 +91,13 @@ const turn = (state: Setup): Turn => {
 };
 
 const getOffTheTrain = (state: Turn): GameOver | TurnResult =>
-  hasWinner(state) ? gameOver(state) : turnResult(state);
+  isCurrentPlayerWinner(state) ? gameOver(state) : turnResult(state);
 
 const gameOver = (state: Turn): GameOver => ({
   ...configuration(state),
   tag: "GameOver",
 
-  winner: winner(state)!
+  winner: state.players[state.currentPlayer]!
 });
 
 const turnResult = (state: Turn): TurnResult => ({
@@ -216,10 +216,7 @@ const configuration: (state: State) => Configuration = R.pick([
   "registeredPlayers"
 ]);
 
-export const winner = (game: Game): Player | undefined =>
-  game.players.find(player => player.station === game.secretStation);
-
-export const hasWinner = (game: Game): boolean => !!winner(game);
+export const isCurrentPlayerWinner = (game: Game): boolean => game.players[game.currentPlayer].station === game.secretStation;
 
 export const hasEnoughPlayers = (config: Configuration): boolean =>
   R.values(config.registeredPlayers).filter(Boolean).length >=
