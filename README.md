@@ -1,13 +1,7 @@
-#station-race-ts
+# station-race-ts
 
-## Keep in mind
+This is a short study of typed state machines. I developed it to guide part of my work in [Labyrinth](https://github.com/grancalavera/labyrinth)
 
-### Predifined types in lib.d.ts
+[Live TypeScript version](https://codepen.io/grancalavera/pen/QZyaqX)
 
-```typescript
-type Partial<T> = { [P in keyof T]?: T[P] };
-```
-
-## Troubleshooting
-
-- running out of inotify user watches https://unix.stackexchange.com/questions/13751/kernel-inotify-watch-limit-reached
+[Live JavaScript version](https://codepen.io/grancalavera/pen/GXeyba)
